@@ -15,7 +15,6 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 import org.apache.coyote.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +46,7 @@ public class Http11Processor implements Runnable, Processor {
              final var outputStream = connection.getOutputStream()) {
 
             final var httpRequestMessage = readMessage(inputStream);
-            final var response = createResponse(httpRequestMessage);
+            final var response = createResponseMessage(httpRequestMessage);
 
             outputStream.write(response.getBytes());
             outputStream.flush();
@@ -71,20 +70,14 @@ public class Http11Processor implements Runnable, Processor {
         return stringBuilder.toString();
     }
 
-    private String createResponse(final String requestMessage) throws IOException {
+    private String createResponseMessage(final String requestMessage) throws IOException {
         final var requestLine = requestMessage.split("\r\n")[0].trim();
         if (!requestLine.startsWith("GET") || !requestLine.endsWith("HTTP/1.1")) {
             return createBadRequestResponse();
         }
 
-        try {
-            final var uri = requestLine.split(" ")[1];
-            final var body = createResponseBody(uri);
-            final var header = createResponseHeader(uri, body);
-            return header + "\r\n\r\n" + body;
-        } catch (final ResourceNotFoundException e) {
-            return "HTTP/1.1 404 Not Found \r\n";
-        }
+        final var uri = requestLine.split(" ")[1];
+        return createResponse(uri);
     }
 
     private String createBadRequestResponse() {
@@ -96,45 +89,54 @@ public class Http11Processor implements Runnable, Processor {
                 errorMessage;
     }
 
-    private String createResponseBody(final String uri) throws IOException {
+    private String createResponse(final String uri) throws IOException {
+        if (uri.isEmpty() || uri.equals("/")) {
+            return String.join("\r\n",
+                    "HTTP/1.1 200 OK ",
+                    "Content-Type: text/html;charset=utf-8 ",
+                    "Content-Length: " + "Hello world!".getBytes(StandardCharsets.UTF_8).length + " ",
+                    "",
+                    "Hello world!"
+            );
+        }
+
         if (uri.startsWith("/login")) {
             final var queryParams = extractQueryParams(uri);
             if (queryParams.containsKey("account") && queryParams.containsKey("password")) {
                 tryLogin(queryParams);
             }
 
-            return getResource("/login.html");
-        }
-
-        return getResource(uri);
-    }
-
-    private String getResource(final String uri) throws IOException {
-        Objects.requireNonNull(uri);
-        if (uri.isEmpty() || uri.equals("/")) {
-            return "Hello world!";
+            final var resource = getClass().getClassLoader().getResource("static/login.html");
+            final var file = new File(resource.getPath());
+            final var body = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            return String.join("\r\n",
+                    "HTTP/1.1 200 OK ",
+                    "Content-Type: text/html;charset=utf-8 ",
+                    "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + " ",
+                    "",
+                    body
+            );
         }
 
         final var resource = getClass().getClassLoader().getResource("static" + uri);
         if (resource == null) {
-            throw new ResourceNotFoundException("Resource not found: " + uri);
+            return "HTTP/1.1 404 Not Found \r\nContent-Length: 0";
         }
 
         final var file = new File(resource.getFile());
         if (file.exists() && !file.isDirectory()) {
-            return Files.readString(file.toPath());
+            final var contentType = CONTENT_TYPE_MAP.getOrDefault(getExtension(uri), "text/html");
+            final var body = Files.readString(file.toPath());
+            return String.join("\r\n",
+                    "HTTP/1.1 200 OK ",
+                    "Content-Type: " + contentType + ";charset=utf-8 ",
+                    "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + " ",
+                    "",
+                    body
+            );
         }
-        throw new IllegalStateException("Resource Not Found: " + uri);
-    }
 
-    private String createResponseHeader(final String uri, final String body) {
-        final var extension = getExtension(uri);
-        final var contentType = CONTENT_TYPE_MAP.getOrDefault(extension, "text/html");
-        return String.join("\r\n",
-                "HTTP/1.1 200 OK ",
-                "Content-Type: " + contentType + ";charset=utf-8 ",
-                "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + " "
-        );
+        return "HTTP/1.1 404 Not Found \r\nContent-Length: 0 ";
     }
 
     private String getExtension(final String uri) {

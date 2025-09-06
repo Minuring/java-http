@@ -54,7 +54,7 @@ class Http11ProcessorTest {
         processor.process(socket);
 
         // then
-        final var expected = "HTTP/1.1 404 Not Found \r\n";
+        final var expected = "HTTP/1.1 404 Not Found \r\nContent-Length: 0";
         assertThat(socket.output()).isEqualTo(expected);
     }
 
