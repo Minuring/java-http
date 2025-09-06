@@ -24,7 +24,7 @@ class Http11ProcessorTest {
         processor.process(socket);
 
         // then
-        var expected = String.join("\r\n",
+        final var expected = String.join("\r\n",
                 "HTTP/1.1 200 OK ",
                 "Content-Type: text/html;charset=utf-8 ",
                 "Content-Length: 12 ",
@@ -52,7 +52,7 @@ class Http11ProcessorTest {
 
         // then
         final URL resource = getClass().getClassLoader().getResource("static/index.html");
-        var expected = "HTTP/1.1 200 OK \r\n" +
+        final var expected = "HTTP/1.1 200 OK \r\n" +
                 "Content-Type: text/html;charset=utf-8 \r\n" +
                 "Content-Length: 5564 \r\n" +
                 "\r\n" +
@@ -81,7 +81,7 @@ class Http11ProcessorTest {
         // then
         final var resource = getClass().getClassLoader().getResource("static/css/styles.css");
         final var content = Files.readString(Path.of(resource.getPath()));
-        var expected = "HTTP/1.1 200 OK \r\n" +
+        final var expected = "HTTP/1.1 200 OK \r\n" +
                 "Content-Type: text/css;charset=utf-8 \r\n" +
                 "Content-Length: " + content.getBytes().length + " \r\n" +
                 "\r\n" +
@@ -116,7 +116,7 @@ class Http11ProcessorTest {
         // then
         final var resource = getClass().getClassLoader().getResource("static" + path);
         final var content = Files.readString(Path.of(resource.getPath()));
-        var expected = "HTTP/1.1 200 OK \r\n" +
+        final var expected = "HTTP/1.1 200 OK \r\n" +
                 "Content-Type: application/javascript;charset=utf-8 \r\n" +
                 "Content-Length: " + content.getBytes().length + " \r\n" +
                 "\r\n" +
@@ -145,7 +145,7 @@ class Http11ProcessorTest {
         // then
         final var resource = getClass().getClassLoader().getResource("static/login.html");
         final var content = Files.readString(Path.of(resource.getPath()));
-        var expected = "HTTP/1.1 200 OK \r\n" +
+        final var expected = "HTTP/1.1 200 OK \r\n" +
                 "Content-Type: text/html;charset=utf-8 \r\n" +
                 "Content-Length: " + content.getBytes().length + " \r\n" +
                 "\r\n" +
