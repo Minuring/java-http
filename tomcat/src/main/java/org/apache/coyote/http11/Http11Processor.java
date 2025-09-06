@@ -102,10 +102,21 @@ public class Http11Processor implements Runnable, Processor {
 
         if (uri.startsWith("/login")) {
             final var queryParams = extractQueryParams(uri);
+
+            // 계정, 비밀번호를 입력한 경우 로그인 시도
             if (queryParams.containsKey("account") && queryParams.containsKey("password")) {
-                tryLogin(queryParams);
+                final var isLoggedIn = login(queryParams.get("account"), queryParams.get("password"));
+
+                // 로그인 성공한 경우 302 -> index.html 리다이렉트
+                if (isLoggedIn) {
+                    return "HTTP/1.1 302 Found \r\nLocation: /index.html";
+                }
+
+                // 로그인 실패한 경우 302 -> 401.html 리다이렉트
+                return "HTTP/1.1 302 Found \r\nLocation: /401.html";
             }
 
+            // 계정, 비밀번호를 입력하지 않은 경우 로그인 화면
             final var resource = getClass().getClassLoader().getResource("static/login.html");
             final var file = new File(resource.getPath());
             final var body = Files.readString(file.toPath(), StandardCharsets.UTF_8);
@@ -146,12 +157,17 @@ public class Http11Processor implements Runnable, Processor {
         return uri.substring(uri.lastIndexOf('.'));
     }
 
-    private void tryLogin(final Map<String, String> queryParams) {
-        final var account = queryParams.get("account");
-        final var password = queryParams.get("password");
-        InMemoryUserRepository.findByAccount(account)
-                .filter(u -> u.checkPassword(password))
-                .ifPresent(u -> log.info("user : {}", u));
+    private boolean login(final String account, final String password) {
+        final var optionalUser = InMemoryUserRepository.findByAccount(account);
+        final var isLoggedIn = optionalUser
+                .map(u -> u.checkPassword(password))
+                .orElse(false);
+
+        if (isLoggedIn) {
+            log.info("user : {}", optionalUser.get());
+            return true;
+        }
+        return false;
     }
 
     private Map<String, String> extractQueryParams(final String uri) {

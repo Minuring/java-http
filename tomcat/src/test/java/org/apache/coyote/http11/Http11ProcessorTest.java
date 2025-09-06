@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -153,7 +154,7 @@ class Http11ProcessorTest {
     void login() throws IOException {
         // given
         final String httpRequest = String.join("\r\n",
-                "GET /login?account=gugu&password=password HTTP/1.1 ",
+                "GET /login HTTP/1.1 ",
                 "Host: localhost:8080 ",
                 "Accept: text/html,*/*;q=0.1 ",
                 "Connection: keep-alive ",
@@ -174,6 +175,56 @@ class Http11ProcessorTest {
                 "Content-Length: " + content.getBytes().length + " \r\n" +
                 "\r\n" +
                 content;
+
+        assertThat(socket.output()).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("로그인 성공 시 302 Found와 함께 index.html로 redirect한다.")
+    void login_success() {
+        // given
+        final String httpRequest = String.join("\r\n",
+                "GET /login?account=gugu&password=password HTTP/1.1 ",
+                "Host: localhost:8080 ",
+                "Accept: text/html,*/*;q=0.1 ",
+                "Connection: keep-alive ",
+                "",
+                "");
+
+        final var socket = new StubSocket(httpRequest);
+        final Http11Processor processor = new Http11Processor(socket);
+
+        // when
+        processor.process(socket);
+
+        // then
+        final var expected = "HTTP/1.1 302 Found \r\n" +
+                "Location: /index.html";
+
+        assertThat(socket.output()).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("로그인 실패 시 302 Found와 함께 401.html로 redirect한다.")
+    void login_fail() {
+        // given
+        final String httpRequest = String.join("\r\n",
+                "GET /login?account=abc&password=def HTTP/1.1 ",
+                "Host: localhost:8080 ",
+                "Accept: text/html,*/*;q=0.1 ",
+                "Connection: keep-alive ",
+                "",
+                "");
+
+        final var socket = new StubSocket(httpRequest);
+        final Http11Processor processor = new Http11Processor(socket);
+
+        // when
+        processor.process(socket);
+
+        // then
+        final var expected = "HTTP/1.1 302 Found \r\n" +
+                "Location: /401.html";
 
         assertThat(socket.output()).isEqualTo(expected);
     }
