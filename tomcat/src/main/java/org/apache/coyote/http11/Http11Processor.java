@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import org.apache.coyote.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,18 +74,26 @@ public class Http11Processor implements Runnable, Processor {
     private String createResponse(final String requestMessage) throws IOException {
         final var requestLine = requestMessage.split("\r\n")[0].trim();
         if (!requestLine.startsWith("GET") || !requestLine.endsWith("HTTP/1.1")) {
-            final var errorMessage = "잘못된 요청입니다.";
-            return "HTTP/1.1 400 Bad Request \r\n" +
-                    "Content-Type: text/plain;charset=utf-8 \r\n" +
-                    "Content-Length: " + errorMessage.getBytes().length +  " \r\n" +
-                    "\r\n" +
-                    errorMessage;
+            return createBadRequestResponse();
         }
-        final var uri = requestLine.split(" ")[1];
 
-        final var body = createResponseBody(uri);
-        final var header = createResponseHeader(uri, body);
-        return header + "\r\n\r\n" + body;
+        try {
+            final var uri = requestLine.split(" ")[1];
+            final var body = createResponseBody(uri);
+            final var header = createResponseHeader(uri, body);
+            return header + "\r\n\r\n" + body;
+        } catch (final ResourceNotFoundException e) {
+            return "HTTP/1.1 404 Not Found \r\n";
+        }
+    }
+
+    private String createBadRequestResponse() {
+        final var errorMessage = "잘못된 요청입니다.";
+        return "HTTP/1.1 400 Bad Request \r\n" +
+                "Content-Type: text/plain;charset=utf-8 \r\n" +
+                "Content-Length: " + errorMessage.getBytes().length + " \r\n" +
+                "\r\n" +
+                errorMessage;
     }
 
     private String createResponseBody(final String uri) throws IOException {
@@ -101,16 +110,21 @@ public class Http11Processor implements Runnable, Processor {
     }
 
     private String getResource(final String uri) throws IOException {
-        final var resource = getClass().getClassLoader().getResource("static" + uri);
-        if (resource != null) {
-            final var file = new File(resource.getFile());
-
-            if (file.exists() && !file.isDirectory()) {
-                return Files.readString(file.toPath());
-            }
+        Objects.requireNonNull(uri);
+        if (uri.isEmpty() || uri.equals("/")) {
+            return "Hello world!";
         }
 
-        return "Hello world!";
+        final var resource = getClass().getClassLoader().getResource("static" + uri);
+        if (resource == null) {
+            throw new ResourceNotFoundException("Resource not found: " + uri);
+        }
+
+        final var file = new File(resource.getFile());
+        if (file.exists() && !file.isDirectory()) {
+            return Files.readString(file.toPath());
+        }
+        throw new IllegalStateException("Resource Not Found: " + uri);
     }
 
     private String createResponseHeader(final String uri, final String body) {

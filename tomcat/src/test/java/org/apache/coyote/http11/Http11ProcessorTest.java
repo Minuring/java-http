@@ -34,6 +34,30 @@ class Http11ProcessorTest {
         assertThat(socket.output()).isEqualTo(expected);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "a", "/abc", "/a.bc", "/index.html2"
+    })
+    void notFound(String uri) {
+        // given
+        final String httpRequest = String.join("\r\n",
+                "GET " + uri + " HTTP/1.1 ",
+                "Host: localhost:8080 ",
+                "Connection: keep-alive ",
+                "",
+                "");
+
+        final var socket = new StubSocket(httpRequest);
+        final Http11Processor processor = new Http11Processor(socket);
+
+        // when
+        processor.process(socket);
+
+        // then
+        final var expected = "HTTP/1.1 404 Not Found \r\n";
+        assertThat(socket.output()).isEqualTo(expected);
+    }
+
     @Test
     void index() throws IOException {
         // given
