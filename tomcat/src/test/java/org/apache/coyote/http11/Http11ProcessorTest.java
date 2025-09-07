@@ -183,13 +183,13 @@ class Http11ProcessorTest {
     @DisplayName("로그인 성공 시 302 Found와 함께 index.html로 redirect한다.")
     void login_success() {
         // given
+        final var formRequestBody = "account=gugu&password=password";
         final String httpRequest = String.join("\r\n",
-                "GET /login?account=gugu&password=password HTTP/1.1 ",
-                "Host: localhost:8080 ",
-                "Accept: text/html,*/*;q=0.1 ",
-                "Connection: keep-alive ",
+                "POST /register HTTP/1.1 ",
+                "Content-Type: application/x-www-form-urlencoded",
+                "Content-Length: " + formRequestBody.getBytes().length,
                 "",
-                "");
+                formRequestBody);
 
         final var socket = new StubSocket(httpRequest);
         final Http11Processor processor = new Http11Processor(socket);
@@ -208,13 +208,13 @@ class Http11ProcessorTest {
     @DisplayName("로그인 실패 시 302 Found와 함께 401.html로 redirect한다.")
     void login_fail() {
         // given
+        final var formRequestBody = "account=abcd&password=dddd";
         final String httpRequest = String.join("\r\n",
-                "GET /login?account=abc&password=def HTTP/1.1 ",
-                "Host: localhost:8080 ",
-                "Accept: text/html,*/*;q=0.1 ",
-                "Connection: keep-alive ",
+                "POST /login HTTP/1.1 ",
+                "Content-Type: application/x-www-form-urlencoded",
+                "Content-Length: " + formRequestBody.getBytes().length,
                 "",
-                "");
+                formRequestBody);
 
         final var socket = new StubSocket(httpRequest);
         final Http11Processor processor = new Http11Processor(socket);
@@ -265,10 +265,8 @@ class Http11ProcessorTest {
         final var formRequestBody = "account=popo&password=password&email=popo@gmail.com";
         final String httpRequest = String.join("\r\n",
                 "POST /register HTTP/1.1 ",
-                "Host: localhost:8080 ",
                 "Content-Type: application/x-www-form-urlencoded",
                 "Content-Length: " + formRequestBody.getBytes().length,
-                "Connection: keep-alive ",
                 "",
                 formRequestBody);
 

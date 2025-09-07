@@ -113,11 +113,13 @@ public class Http11Processor implements Runnable, Processor {
         }
 
         if (uri.startsWith("/login")) {
-            final var queryParams = extractQueryParams(uri);
 
             // 계정, 비밀번호를 입력한 경우 로그인 시도
-            if (queryParams.containsKey("account") && queryParams.containsKey("password")) {
-                final var isLoggedIn = login(queryParams.get("account"), queryParams.get("password"));
+            if (httpMethod.equals("POST")) {
+                final var formData = Arrays.stream(requestBody.split("&"))
+                        .map(s -> s.split("="))
+                        .collect(toMap(kv -> kv[0], kv -> kv[1]));
+                final var isLoggedIn = login(formData.get("account"), formData.get("password"));
 
                 // 로그인 성공한 경우 302 -> index.html 리다이렉트
                 if (isLoggedIn) {
