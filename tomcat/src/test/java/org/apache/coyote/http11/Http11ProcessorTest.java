@@ -228,4 +228,60 @@ class Http11ProcessorTest {
 
         assertThat(socket.output()).isEqualTo(expected);
     }
+
+    @Test
+    void register() throws IOException {
+        // given
+        final String httpRequest = String.join("\r\n",
+                "GET /register HTTP/1.1 ",
+                "Host: localhost:8080 ",
+                "Accept: text/html,*/*;q=0.1 ",
+                "Connection: keep-alive ",
+                "",
+                "");
+
+        final var socket = new StubSocket(httpRequest);
+        final Http11Processor processor = new Http11Processor(socket);
+
+        // when
+        processor.process(socket);
+
+        // then
+        final var resource = getClass().getClassLoader().getResource("static/register.html");
+        final var content = Files.readString(Path.of(resource.getPath()));
+        final var expected = "HTTP/1.1 200 OK \r\n" +
+                "Content-Type: text/html;charset=utf-8 \r\n" +
+                "Content-Length: " + content.getBytes().length + " \r\n" +
+                "\r\n" +
+                content;
+
+        assertThat(socket.output()).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("회원가입 성공 시 302 Found와 함께 index.html로 redirect한다.")
+    void register_success() {
+        // given
+        final var formRequestBody = "account=popo&password=password&email=popo@gmail.com";
+        final String httpRequest = String.join("\r\n",
+                "POST /register HTTP/1.1 ",
+                "Host: localhost:8080 ",
+                "Content-Type: application/x-www-form-urlencoded",
+                "Content-Length: " + formRequestBody.getBytes().length,
+                "Connection: keep-alive ",
+                "",
+                formRequestBody);
+
+        final var socket = new StubSocket(httpRequest);
+        final Http11Processor processor = new Http11Processor(socket);
+
+        // when
+        processor.process(socket);
+
+        // then
+        final var expected = "HTTP/1.1 302 Found \r\n" +
+                "Location: /index.html";
+
+        assertThat(socket.output()).isEqualTo(expected);
+    }
 }
