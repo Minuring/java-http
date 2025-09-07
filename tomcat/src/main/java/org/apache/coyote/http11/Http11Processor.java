@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 import org.apache.coyote.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,13 +96,28 @@ public class Http11Processor implements Runnable, Processor {
         final var httpMethod = requestLine.split(" ")[0];
         final var uri = requestLine.split(" ")[1];
         final var headerAndBody = requestMessage.split("\r\n\r\n");
+        final var httpCookies = extractCookieFromHeader(headerAndBody[0]);
         if (headerAndBody.length == 2) {
-            return createResponse(httpMethod, uri, headerAndBody[1].trim());
+            return createResponse(httpMethod, uri, headerAndBody[1].trim(), httpCookies);
         }
-        return createResponse(httpMethod, uri, headerAndBody[0].trim());
+        return createResponse(httpMethod, uri, headerAndBody[0].trim(), httpCookies);
     }
 
-    private String createResponse(final String httpMethod, final String uri, final String requestBody) throws IOException {
+    private HttpCookies extractCookieFromHeader(final String headers) {
+        return Arrays.stream(headers.split("\r\n"))
+                .filter(header -> header.startsWith("Cookie:"))
+                .findAny()
+                .map(HttpCookies::new)
+                .orElse(new HttpCookies());
+    }
+
+    private String createResponse(
+            final String httpMethod,
+            final String uri,
+            final String requestBody,
+            final HttpCookies cookies
+    ) throws IOException {
+
         if (uri.isEmpty() || uri.equals("/")) {
             return String.join("\r\n",
                     "HTTP/1.1 200 OK ",
@@ -123,7 +139,11 @@ public class Http11Processor implements Runnable, Processor {
 
                 // 로그인 성공한 경우 302 -> index.html 리다이렉트
                 if (isLoggedIn) {
-                    return "HTTP/1.1 302 Found \r\nLocation: /index.html";
+                    final var response = "HTTP/1.1 302 Found \r\nLocation: /index.html";
+                    if (cookies.hasCookie("JSESSIONID")) {
+                        return response;
+                    }
+                    return response + "\r\n" + "Set-Cookie: JSESSIONID=" + UUID.randomUUID();
                 }
 
                 // 로그인 실패한 경우 302 -> 401.html 리다이렉트
