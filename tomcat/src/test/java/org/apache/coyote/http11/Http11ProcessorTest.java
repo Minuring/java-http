@@ -207,7 +207,7 @@ class Http11ProcessorTest {
     }
 
     @Test
-    @DisplayName("로그인 성공 시 JSESSION 쿠키가 없으면 Set-Cookie 헤더에 JSESSIONID를 포함한다.")
+    @DisplayName("로그인 성공 시 Set-Cookie 헤더에 JSESSIONID를 포함한다.")
     void login_success_setCookie() {
         // given
         final var formRequestBody = "account=gugu&password=password";
@@ -227,30 +227,6 @@ class Http11ProcessorTest {
         // then
 
         assertThat(socket.output()).contains("Set-Cookie: JSESSIONID=");
-    }
-
-    @Test
-    @DisplayName("로그인 성공 시 JSESSION 쿠키가 있으면 Set-Cookie 헤더에 JSESSIONID를 포함하지 않는다.")
-    void login_success_already_has_jsessionid() {
-        // given
-        final var formRequestBody = "account=gugu&password=password";
-        final String httpRequest = String.join("\r\n",
-                "POST /login HTTP/1.1 ",
-                "Content-Type: application/x-www-form-urlencoded",
-                "Content-Length: " + formRequestBody.getBytes().length,
-                "Cookie: JSESSIONID=" + UUID.randomUUID(),
-                "",
-                formRequestBody);
-
-        final var socket = new StubSocket(httpRequest);
-        final Http11Processor processor = new Http11Processor(socket);
-
-        // when
-        processor.process(socket);
-
-        // then
-
-        assertThat(socket.output()).doesNotContain("Set-Cookie: JSESSIONID=");
     }
 
     @Test

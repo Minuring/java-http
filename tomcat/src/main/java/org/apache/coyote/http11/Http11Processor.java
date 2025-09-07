@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toMap;
 import com.techcourse.db.InMemoryUserRepository;
 import com.techcourse.exception.UncheckedServletException;
 import com.techcourse.model.User;
+import jakarta.servlet.http.HttpSession;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -16,7 +17,8 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
-import java.util.UUID;
+import org.apache.catalina.Manager;
+import org.apache.catalina.session.SessionManager;
 import org.apache.coyote.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,8 @@ public class Http11Processor implements Runnable, Processor {
             ".css", "text/css",
             ".js", "application/javascript"
     );
+
+    private static final Manager SESSION_MANAGER = new SessionManager();
 
     private final Socket connection;
 
@@ -97,10 +101,16 @@ public class Http11Processor implements Runnable, Processor {
         final var uri = requestLine.split(" ")[1];
         final var headerAndBody = requestMessage.split("\r\n\r\n");
         final var httpCookies = extractCookieFromHeader(headerAndBody[0]);
-        if (headerAndBody.length == 2) {
-            return createResponse(httpMethod, uri, headerAndBody[1].trim(), httpCookies);
+        final var session = SESSION_MANAGER.findSession(httpCookies.getSessionId());
+        if (!session.isNew()) {
+            final var user = (User) session.getAttribute("user");
+            log.info("session found. id = {}, user = {}", session.getId(), user);
         }
-        return createResponse(httpMethod, uri, headerAndBody[0].trim(), httpCookies);
+
+        if (headerAndBody.length == 2) {
+            return createResponse(httpMethod, uri, headerAndBody[1].trim(), session);
+        }
+        return createResponse(httpMethod, uri, headerAndBody[0].trim(), session);
     }
 
     private HttpCookies extractCookieFromHeader(final String headers) {
@@ -115,7 +125,7 @@ public class Http11Processor implements Runnable, Processor {
             final String httpMethod,
             final String uri,
             final String requestBody,
-            final HttpCookies cookies
+            final HttpSession session
     ) throws IOException {
 
         if (uri.isEmpty() || uri.equals("/")) {
@@ -130,20 +140,23 @@ public class Http11Processor implements Runnable, Processor {
 
         if (uri.startsWith("/login")) {
 
+            if (session.getAttribute("user") != null) {
+                return "HTTP/1.1 302 Found \r\nLocation: /index.html";
+            }
+
             // 계정, 비밀번호를 입력한 경우 로그인 시도
             if (httpMethod.equals("POST")) {
                 final var formData = Arrays.stream(requestBody.split("&"))
                         .map(s -> s.split("="))
                         .collect(toMap(kv -> kv[0], kv -> kv[1]));
-                final var isLoggedIn = login(formData.get("account"), formData.get("password"));
+                final var loggedInUser = login(formData.get("account"), formData.get("password"));
 
                 // 로그인 성공한 경우 302 -> index.html 리다이렉트
-                if (isLoggedIn) {
-                    final var response = "HTTP/1.1 302 Found \r\nLocation: /index.html";
-                    if (cookies.hasCookie("JSESSIONID")) {
-                        return response;
-                    }
-                    return response + "\r\n" + "Set-Cookie: JSESSIONID=" + UUID.randomUUID();
+                if (loggedInUser != null) {
+                    session.setAttribute("user", loggedInUser);
+                    SESSION_MANAGER.add(session);
+                    return "HTTP/1.1 302 Found \r\nLocation: /index.html \r\n"
+                            + "Set-Cookie: JSESSIONID=" + session.getId();
                 }
 
                 // 로그인 실패한 경우 302 -> 401.html 리다이렉트
@@ -228,17 +241,18 @@ public class Http11Processor implements Runnable, Processor {
         return uri.substring(uri.lastIndexOf('.'));
     }
 
-    private boolean login(final String account, final String password) {
+    private User login(final String account, final String password) {
         final var optionalUser = InMemoryUserRepository.findByAccount(account);
         final var isLoggedIn = optionalUser
                 .map(u -> u.checkPassword(password))
                 .orElse(false);
 
         if (isLoggedIn) {
-            log.info("user : {}", optionalUser.get());
-            return true;
+            final var user = optionalUser.get();
+            log.info("user : {}", user);
+            return user;
         }
-        return false;
+        return null;
     }
 
     private Map<String, String> extractQueryParams(final String uri) {
