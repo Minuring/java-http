@@ -21,15 +21,11 @@ public class HttpCookie {
     }
 
     public HttpSession getSession() {
-        if (has(JSESSIONID)) {
-            final var sessionId = get(JSESSIONID);
-            return SessionManager.INSTANCE.findSession(sessionId);
+        final var session = SessionManager.INSTANCE.findSession(get(JSESSIONID));
+        if  (session == null) {
+            return new Session();
         }
-        return new Session();
-    }
-
-    public boolean has(final String name) {
-        return cookies.containsKey(name);
+        return session;
     }
 
     public String get(final String name) {
