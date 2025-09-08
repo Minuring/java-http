@@ -30,32 +30,17 @@ public class Session implements HttpSession {
     }
 
     @Override
-    public Enumeration<String> getAttributeNames() {
-        return new Enumeration<>() {
-
-            private final Iterator<String> names = attributes.keySet().iterator();
-
-            @Override
-            public boolean hasMoreElements() {
-                return names.hasNext();
-            }
-
-            @Override
-            public String nextElement() {
-                return names.next();
-            }
-        };
-    }
-
-    @Override
     public String[] getValueNames() {
-        return attributes.values().stream()
-                .map(Object::toString)
-                .toArray(String[]::new);
+        return attributes.keySet().toArray(String[]::new);
     }
 
     @Override
     public void setAttribute(final String name, final Object value) {
+        if (value == null) {
+            removeAttribute(name);
+            return;
+        }
+
         attributes.merge(name, value, (_old, _new) -> _new);
     }
 
@@ -76,12 +61,18 @@ public class Session implements HttpSession {
 
     @Override
     public void invalidate() {
+        SessionManager.INSTANCE.remove(this);
         attributes.clear();
     }
 
     @Override
+    public Enumeration<String> getAttributeNames() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean isNew() {
-        return attributes.isEmpty();
+        throw new UnsupportedOperationException();
     }
 
     @Override
