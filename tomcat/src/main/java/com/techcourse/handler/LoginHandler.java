@@ -4,9 +4,11 @@ import static java.util.stream.Collectors.toMap;
 
 import com.techcourse.db.InMemoryUserRepository;
 import com.techcourse.model.User;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import org.apache.catalina.session.Session;
 import org.apache.catalina.session.SessionManager;
 import org.apache.coyote.io.StaticResource;
 import org.apache.coyote.message.HttpRequest;
@@ -18,7 +20,8 @@ public class LoginHandler {
     private static final Logger log = LoggerFactory.getLogger(LoginHandler.class);
 
     public String handle(final HttpRequest request) throws IOException {
-        final var session = request.getSession();
+        final var session = findSession(request);
+
         if (session.getAttribute("user") != null) {
             return "HTTP/1.1 302 Found\r\nLocation: /index.html";
         }
@@ -52,6 +55,14 @@ public class LoginHandler {
                 "",
                 body
         );
+    }
+
+    private HttpSession findSession(final HttpRequest request) {
+        final var session = request.getSession();
+        if (session != null) {
+            return session;
+        }
+        return new Session();
     }
 
     private User login(final String account, final String password) {
