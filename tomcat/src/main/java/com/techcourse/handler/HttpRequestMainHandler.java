@@ -30,6 +30,6 @@ public class HttpRequestMainHandler {
             return resourceHandler.handle(request);
         }
 
-        return "HTTP/1.1 404 Not Found \r\nContent-Length: 0 ";
+        return "HTTP/1.1 404 Not Found\r\nContent-Length: 0";
     }
 }

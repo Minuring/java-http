@@ -21,9 +21,9 @@ public class ResourceHandler {
         final var contentType = CONTENT_TYPE_MAP.getOrDefault(resource.getExtension(), "text/html");
         final var body = resource.readAsString();
         return String.join("\r\n",
-                "HTTP/1.1 200 OK ",
-                "Content-Type: " + contentType + ";charset=utf-8 ",
-                "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + " ",
+                "HTTP/1.1 200 OK",
+                "Content-Type: " + contentType + ";charset=utf-8",
+                "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length,
                 "",
                 body
         );

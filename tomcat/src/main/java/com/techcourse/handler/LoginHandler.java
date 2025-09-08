@@ -20,7 +20,7 @@ public class LoginHandler {
     public String handle(final HttpRequest request) throws IOException {
         final var session = request.getSession();
         if (session.getAttribute("user") != null) {
-            return "HTTP/1.1 302 Found \r\nLocation: /index.html";
+            return "HTTP/1.1 302 Found\r\nLocation: /index.html";
         }
 
         // 계정, 비밀번호를 입력한 경우 로그인 시도
@@ -35,20 +35,20 @@ public class LoginHandler {
             if (loggedInUser != null) {
                 session.setAttribute("user", loggedInUser);
                 SessionManager.INSTANCE.add(session);
-                return "HTTP/1.1 302 Found \r\nLocation: /index.html \r\n"
+                return "HTTP/1.1 302 Found\r\nLocation: /index.html \r\n"
                         + "Set-Cookie: JSESSIONID=" + session.getId();
             }
 
             // 로그인 실패한 경우 302 -> 401.html 리다이렉트
-            return "HTTP/1.1 302 Found \r\nLocation: /401.html";
+            return "HTTP/1.1 302 Found\r\nLocation: /401.html";
         }
 
         // 계정, 비밀번호를 입력하지 않은 경우 로그인 화면
         final var body = new StaticResource("login.html").readAsString();
         return String.join("\r\n",
-                "HTTP/1.1 200 OK ",
-                "Content-Type: text/html;charset=utf-8 ",
-                "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + " ",
+                "HTTP/1.1 200 OK",
+                "Content-Type: text/html;charset=utf-8",
+                "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length,
                 "",
                 body
         );

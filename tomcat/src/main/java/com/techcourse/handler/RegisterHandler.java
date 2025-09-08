@@ -19,9 +19,9 @@ public class RegisterHandler {
         if (httpMethod.isGet()) {
             final var body = new StaticResource("register.html").readAsString();
             return String.join("\r\n",
-                    "HTTP/1.1 200 OK ",
-                    "Content-Type: text/html;charset=utf-8 ",
-                    "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + " ",
+                    "HTTP/1.1 200 OK",
+                    "Content-Type: text/html;charset=utf-8",
+                    "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length,
                     "",
                     body
             );
@@ -33,7 +33,7 @@ public class RegisterHandler {
                     .collect(toMap(kv -> kv[0], kv -> kv[1]));
 
             register(formData);
-            return "HTTP/1.1 302 Found \r\nLocation: /index.html";
+            return "HTTP/1.1 302 Found\r\nLocation: /index.html";
         }
 
         throw new IllegalArgumentException("지원하지 않는 HTTP 메서드입니다.");
