@@ -3,6 +3,7 @@ package org.apache.coyote.message;
 import jakarta.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import org.apache.catalina.session.SessionManager;
 
 public class HttpCookie {
@@ -12,7 +13,7 @@ public class HttpCookie {
     private final Map<String, String> cookies;
 
     public HttpCookie(final Map<String, String> cookies) {
-        this.cookies = cookies;
+        this.cookies = Objects.requireNonNull(cookies);
     }
 
     public HttpCookie() {

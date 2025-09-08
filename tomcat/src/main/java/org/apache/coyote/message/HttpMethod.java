@@ -1,6 +1,7 @@
 package org.apache.coyote.message;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public enum HttpMethod {
     GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH;
@@ -38,6 +39,7 @@ public enum HttpMethod {
     }
 
     public static HttpMethod fromString(final String method) {
+        Objects.requireNonNull(method, "method cannot be null");
         return Arrays.stream(values())
                 .filter(httpMethod -> httpMethod.name().equalsIgnoreCase(method))
                 .findAny()

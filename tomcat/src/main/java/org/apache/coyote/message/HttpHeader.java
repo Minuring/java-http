@@ -2,6 +2,7 @@ package org.apache.coyote.message;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class HttpHeader {
 
@@ -9,6 +10,9 @@ public class HttpHeader {
     private final HttpCookie cookie;
 
     public HttpHeader(final Map<String, String> headers, final HttpCookie cookie) {
+        Objects.requireNonNull(headers);
+        Objects.requireNonNull(cookie);
+
         headers.forEach((k, v) -> this.headers.put(k.toLowerCase(), v.toLowerCase()));
         this.cookie = cookie;
     }
