@@ -44,7 +44,9 @@ class HttpInputStreamReaderTest {
     @DisplayName("InputStream으로부터 HTTP 요청 본문을 읽는다.")
     void readBody() throws IOException {
         // given
-        final var httpMessage = "GET /index.html HTTP/1.1\r\nContent-Length: 10\r\n\r\nHello world!";
+        final var helloWorld = "Hello world!";
+
+        final var httpMessage = String.format("GET /index.html HTTP/1.1\r\nContent-Length: %d\r\n\r\n%s", helloWorld.getBytes().length, helloWorld);
         final var inputStream = new ByteArrayInputStream(httpMessage.getBytes());
         final var httpInputStream = new HttpInputStreamReader(inputStream);
 
@@ -52,7 +54,7 @@ class HttpInputStreamReaderTest {
         final var body = httpInputStream.readBody();
 
         // then
-        assertThat(body).isEqualTo("Hello world!");
+        assertThat(body).isEqualTo(helloWorld);
     }
 
     @Test

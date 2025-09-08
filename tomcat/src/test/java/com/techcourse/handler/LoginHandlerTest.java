@@ -53,7 +53,7 @@ class LoginHandlerTest {
         final var post_login_http11 = new StartLine(HttpMethod.POST, "/login", "HTTP/1.1");
         final var header = new HttpHeader(Map.of(
                 "Content-Type", "application/x-www-form-urlencoded",
-                "Content-Length: ", formRequestBody.getBytes().length + ""
+                "Content-Length", formRequestBody.getBytes().length + ""
         ));
         final var request = new HttpRequest(post_login_http11, header, formRequestBody);
 
@@ -77,7 +77,7 @@ class LoginHandlerTest {
         final var post_login_http11 = new StartLine(HttpMethod.POST, "/login", "HTTP/1.1");
         final var header = new HttpHeader(Map.of(
                 "Content-Type", "application/x-www-form-urlencoded",
-                "Content-Length: ", formRequestBody.getBytes().length + ""
+                "Content-Length", formRequestBody.getBytes().length + ""
         ));
         final var request = new HttpRequest(post_login_http11, header,  formRequestBody);
 
@@ -98,7 +98,7 @@ class LoginHandlerTest {
         final var post_login_http11 = new StartLine(HttpMethod.POST, "/login", "HTTP/1.1");
         final var header = new HttpHeader(Map.of(
                 "Content-Type", "application/x-www-form-urlencoded",
-                "Content-Length: ", formRequestBody.getBytes().length + ""
+                "Content-Length", formRequestBody.getBytes().length + ""
         ));
         final var request = new HttpRequest(post_login_http11, header, formRequestBody);
 

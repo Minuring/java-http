@@ -47,10 +47,10 @@ class RegisterHandlerTest {
         final var handler = new RegisterHandler();
 
         final var formRequestBody = "account=popo&password=password&email=popo@gmail.com";
-        final var post_register_http11 = new StartLine(HttpMethod.POST, "/login", "HTTP/1.1");
+        final var post_register_http11 = new StartLine(HttpMethod.POST, "/register", "HTTP/1.1");
         final var header = new HttpHeader(Map.of(
                 "Content-Type", "application/x-www-form-urlencoded",
-                "Content-Length: ", formRequestBody.getBytes().length + ""
+                "Content-Length", formRequestBody.getBytes().length + ""
         ));
         final var request = new HttpRequest(post_register_http11, header, formRequestBody);
 
