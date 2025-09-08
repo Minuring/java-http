@@ -38,8 +38,8 @@ class HttpMessageParserTest {
 
         // then
         assertAll(
-                () -> assertThat(header.has("Content-Type")).isTrue(),
-                () -> assertThat(header.get("Content-Type")).isEqualTo("text/plain"),
+                () -> assertThat(header.has("content-type")).isTrue(),
+                () -> assertThat(header.get("content-type")).isEqualTo("text/plain"),
 
                 () -> assertThat(header.getCookie()).isInstanceOf(HttpCookie.class),
                 () -> assertThat(header.getCookie().get("a")).isEqualTo("1")

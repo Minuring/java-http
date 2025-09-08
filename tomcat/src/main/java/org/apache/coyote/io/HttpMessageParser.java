@@ -13,7 +13,6 @@ public class HttpMessageParser {
 
     private static final String BLANK = " ";
     private static final String CRLF = "\r\n";
-    private static final String COLON = ":";
 
     public StartLine parseStartLine(final String startLine) {
         Objects.requireNonNull(startLine);
@@ -30,11 +29,11 @@ public class HttpMessageParser {
         Objects.requireNonNull(headers);
 
         final var headersMap = Arrays.stream(headers.split(CRLF))
-                .map(header -> header.split(COLON))
-                .collect(toMap(kv -> kv[0].trim(), kv -> kv[1].trim()));
+                .map(header -> header.split(":", 2))
+                .collect(toMap(kv -> kv[0].toLowerCase().trim(), kv -> kv[1].toLowerCase().trim()));
 
-        if (headersMap.containsKey("Cookie")) {
-            final var cookie = parseCookie(headersMap.get("Cookie"));
+        if (headersMap.containsKey("cookie")) {
+            final var cookie = parseCookie(headersMap.get("cookie"));
             return new HttpHeader(headersMap, cookie);
         }
         return new HttpHeader(headersMap);
@@ -43,7 +42,7 @@ public class HttpMessageParser {
     private HttpCookie parseCookie(final String rawCookieValues) {
         final var cookieMap = Arrays.stream(rawCookieValues.split(";"))
                 .map(cookie -> cookie.split("="))
-                .collect(toMap(kv -> kv[0].trim(), kv -> kv[1].trim()));
+                .collect(toMap(kv -> kv[0].toLowerCase().trim(), kv -> kv[1].toLowerCase().trim()));
 
         return new HttpCookie(cookieMap);
     }
