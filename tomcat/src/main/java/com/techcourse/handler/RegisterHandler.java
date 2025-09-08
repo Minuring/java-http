@@ -4,11 +4,11 @@ import static java.util.stream.Collectors.toMap;
 
 import com.techcourse.db.InMemoryUserRepository;
 import com.techcourse.model.User;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Map;
+import org.apache.coyote.io.StaticResource;
 import org.apache.coyote.message.HttpRequest;
 
 public class RegisterHandler {
@@ -17,9 +17,7 @@ public class RegisterHandler {
         final var httpMethod = request.startLine().httpMethod();
 
         if (httpMethod.isGet()) {
-            final var resource = getClass().getClassLoader().getResource("static/register.html");
-            final var file = new File(resource.getPath());
-            final var body = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            final var body = new StaticResource("register.html").readAsString();
             return String.join("\r\n",
                     "HTTP/1.1 200 OK ",
                     "Content-Type: text/html;charset=utf-8 ",
@@ -34,14 +32,18 @@ public class RegisterHandler {
                     .map(s -> s.split("="))
                     .collect(toMap(kv -> kv[0], kv -> kv[1]));
 
-            final var account = formData.get("account");
-            final var password = formData.get("password");
-            final var email = formData.get("email");
-            final var user = new User(account, password, email);
-            InMemoryUserRepository.save(user);
+            register(formData);
             return "HTTP/1.1 302 Found \r\nLocation: /index.html";
         }
 
         throw new IllegalArgumentException("지원하지 않는 HTTP 메서드입니다.");
+    }
+
+    private void register(final Map<String, String> formData) {
+        final var account = formData.get("account");
+        final var password = formData.get("password");
+        final var email = formData.get("email");
+        final var user = new User(account, password, email);
+        InMemoryUserRepository.save(user);
     }
 }

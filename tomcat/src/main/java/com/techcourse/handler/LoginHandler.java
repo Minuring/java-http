@@ -4,12 +4,11 @@ import static java.util.stream.Collectors.toMap;
 
 import com.techcourse.db.InMemoryUserRepository;
 import com.techcourse.model.User;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Arrays;
 import org.apache.catalina.session.SessionManager;
+import org.apache.coyote.io.StaticResource;
 import org.apache.coyote.message.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,9 +44,7 @@ public class LoginHandler {
         }
 
         // 계정, 비밀번호를 입력하지 않은 경우 로그인 화면
-        final var resource = getClass().getClassLoader().getResource("static/login.html");
-        final var file = new File(resource.getPath());
-        final var body = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+        final var body = new StaticResource("login.html").readAsString();
         return String.join("\r\n",
                 "HTTP/1.1 200 OK ",
                 "Content-Type: text/html;charset=utf-8 ",
