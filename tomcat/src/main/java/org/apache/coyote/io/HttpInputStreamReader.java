@@ -2,13 +2,16 @@ package org.apache.coyote.io;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.coyote.io.HttpInputStreamReader.Phase.BODY;
+import static org.apache.coyote.io.HttpInputStreamReader.Phase.FINISHED;
 import static org.apache.coyote.io.HttpInputStreamReader.Phase.HEADERS;
 import static org.apache.coyote.io.HttpInputStreamReader.Phase.STARTLINE;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 public class HttpInputStreamReader extends InputStreamReader {
 
@@ -18,7 +21,8 @@ public class HttpInputStreamReader extends InputStreamReader {
 
     private final InputStream in;
 
-    private byte[] buffer;
+    private byte[] headBuffer;
+    private byte[] bodyBuffer;
     private Phase phase = STARTLINE;
     private int startLineEndIndex;
     private int headerEndIndex;
@@ -29,68 +33,94 @@ public class HttpInputStreamReader extends InputStreamReader {
     }
 
     public String readStartLine() throws IOException {
-        ensureRead();
-        final var bytes = Arrays.copyOfRange(buffer, 0, startLineEndIndex + 1);
+        ensureHeaderRead();
+        final var bytes = Arrays.copyOfRange(headBuffer, 0, startLineEndIndex + 1);
         return new String(bytes, UTF_8);
     }
 
     public String readHeader() throws IOException {
-        ensureRead();
-        final var bytes = Arrays.copyOfRange(buffer, startLineEndIndex + 3, headerEndIndex + 1);
+        ensureHeaderRead();
+        final var bytes = Arrays.copyOfRange(headBuffer, startLineEndIndex + 3, headerEndIndex + 1);
         return new String(bytes, UTF_8);
     }
 
     public String readBody() throws IOException {
-        ensureRead();
-        if (phase != BODY) {
+        ensureHeaderRead();
+        final var contentLength = getContentLength();
+
+        if (getContentLength() == 0) {
             return "";
         }
 
-        final var bytes = Arrays.copyOfRange(buffer, headerEndIndex + 5, buffer.length);
-        return new String(bytes, UTF_8);
+        if (phase == BODY) {
+            readToBodyBuffer(contentLength);
+            phase = FINISHED;
+        }
+        return new String(bodyBuffer, UTF_8);
     }
 
-    private void ensureRead() throws IOException {
-        if (buffer != null) {
+    private void readToBodyBuffer(final int contentLength) throws IOException {
+        if (contentLength == 0) {
+            bodyBuffer = new byte[0];
             return;
         }
 
-        this.buffer = readUntilEnd();
-        for (int i = 0; i < buffer.length; i++) {
-
-            if (phase == STARTLINE && i < buffer.length - 2
-                    && buffer[i] == CR && buffer[i + 1] == LF
-            ) {
-                this.startLineEndIndex = i - 1;
-                this.phase = HEADERS;
-                continue;
-            }
-
-            if (phase == HEADERS) {
-                this.headerEndIndex = i;
-
-                if (i < buffer.length - 4
-                        && buffer[i] == CR && buffer[i + 1] == LF
-                        && buffer[i + 2] == CR && buffer[i + 3] == LF) {
-
-                    this.phase = BODY;
-                    this.headerEndIndex = i - 1;
-                }
-            }
-        }
+        bodyBuffer = in.readNBytes(contentLength);
     }
 
-    private byte[] readUntilEnd() throws IOException {
+    private int getContentLength() throws IOException {
+        final var header = readHeader().toLowerCase();
+        final var p = Pattern.compile("(?i)content-length\\s*:\\s*(\\d+)");
+        final var m = p.matcher(header);
+        if (m.find()) {
+            return Integer.parseInt(m.group(1));
+        }
+        return 0;
+    }
+
+    private void ensureHeaderRead() throws IOException {
+        if (headBuffer != null) {
+            return;
+        }
+
+        this.headBuffer = readUntilHeader();
+    }
+
+    private byte[] readUntilHeader() throws IOException {
         final var buffer = new byte[MAX_REQUEST_SIZE];
 
-        int len = 0;
-        for (int b; (b = in.read()) != -1; len++) {
-            buffer[len] = (byte) b;
+        int i = 0;
+        while (true) {
+            final var b = (byte) in.read();
+            if (b == -1) {
+                break;
+            }
+
+            buffer[i] = b;
+            if (phase == STARTLINE && i >= 1 && buffer[i] == LF && buffer[i - 1] == CR) {
+                this.startLineEndIndex = i - 2;
+                this.phase = HEADERS;
+
+            } else if (phase == HEADERS) {
+                this.headerEndIndex = i;
+
+                if (i >= 3
+                        && buffer[i] == LF && buffer[i - 1] == CR
+                        && buffer[i - 2] == LF && buffer[i - 3] == CR) {
+
+                    this.headerEndIndex = i - 4;
+                    break;
+                }
+            }
+
+            i++;
         }
-        return Arrays.copyOfRange(buffer, 0, len);
+
+        this.phase = BODY;
+        return Arrays.copyOfRange(buffer, 0, i + 1);
     }
 
     enum Phase {
-        STARTLINE, HEADERS, BODY
+        STARTLINE, HEADERS, BODY, FINISHED
     }
 }
