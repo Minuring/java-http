@@ -18,6 +18,8 @@ import org.apache.catalina.Manager;
 import org.apache.catalina.session.SessionManager;
 import org.apache.coyote.Processor;
 import org.apache.coyote.io.HttpInputStreamReader;
+import org.apache.coyote.io.HttpMessageParser;
+import org.apache.coyote.message.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +51,8 @@ public class Http11Processor implements Runnable, Processor {
         try (final var inputStream = connection.getInputStream();
              final var outputStream = connection.getOutputStream()) {
 
-            final var httpRequestMessage = readMessage(inputStream);
-            final var response = createResponseMessage(httpRequestMessage);
+            final var httpRequest = readMessage(inputStream);
+            final var response = createResponseMessage(httpRequest);
 
             outputStream.write(response.getBytes());
             outputStream.flush();
@@ -59,48 +61,34 @@ public class Http11Processor implements Runnable, Processor {
         }
     }
 
-    private String readMessage(final InputStream inputStream) throws IOException {
+    private HttpRequest readMessage(final InputStream inputStream) throws IOException {
         final var reader = new HttpInputStreamReader(inputStream);
-        return reader.readStartLine()
-                + "\r\n"
-                + reader.readHeader()
-                + "\r\n\r\n"
-                + reader.readBody();
+        final var parser = new HttpMessageParser();
+
+        final var startLine = parser.parseStartLine(reader.readStartLine());
+        final var header = parser.parseHeader(reader.readHeader());
+        final var body = reader.readBody();
+
+        return new HttpRequest(startLine, header, body);
     }
 
-    private String createResponseMessage(final String requestMessage) throws IOException {
-        final var requestLine = requestMessage.split("\r\n")[0].trim();
-
-        final var httpMethod = requestLine.split(" ")[0];
-        final var uri = requestLine.split(" ")[1];
-        final var headerAndBody = requestMessage.split("\r\n\r\n");
-        final var httpCookies = extractCookieFromHeader(headerAndBody[0]);
-        final var session = SESSION_MANAGER.findSession(httpCookies.getSessionId());
+    private String createResponseMessage(final HttpRequest request) throws IOException {
+        final var httpCookie = request.header().getCookie();
+        final var session = SESSION_MANAGER.findSession(httpCookie.getSessionId());
         if (!session.isNew()) {
             final var user = (User) session.getAttribute("user");
             log.info("session found. id = {}, user = {}", session.getId(), user);
         }
 
-        if (headerAndBody.length == 2) {
-            return createResponse(httpMethod, uri, headerAndBody[1].trim(), session);
-        }
-        return createResponse(httpMethod, uri, headerAndBody[0].trim(), session);
-    }
-
-    private HttpCookies extractCookieFromHeader(final String headers) {
-        return Arrays.stream(headers.split("\r\n"))
-                .filter(header -> header.startsWith("Cookie:"))
-                .findAny()
-                .map(HttpCookies::new)
-                .orElse(new HttpCookies());
+        return createResponse(request, session);
     }
 
     private String createResponse(
-            final String httpMethod,
-            final String uri,
-            final String requestBody,
+            final HttpRequest request,
             final HttpSession session
     ) throws IOException {
+        final var httpMethod = request.startLine().httpMethod();
+        final var uri = request.startLine().uri();
 
         if (uri.isEmpty() || uri.equals("/")) {
             return String.join("\r\n",
@@ -119,8 +107,8 @@ public class Http11Processor implements Runnable, Processor {
             }
 
             // 계정, 비밀번호를 입력한 경우 로그인 시도
-            if (httpMethod.equals("POST")) {
-                final var formData = Arrays.stream(requestBody.split("&"))
+            if (httpMethod.isPost()) {
+                final var formData = Arrays.stream(request.body().split("&"))
                         .map(s -> s.split("="))
                         .collect(toMap(kv -> kv[0], kv -> kv[1]));
                 final var loggedInUser = login(formData.get("account"), formData.get("password"));
@@ -151,7 +139,7 @@ public class Http11Processor implements Runnable, Processor {
         }
 
         if (uri.startsWith("/register")) {
-            if (httpMethod.equals("GET")) {
+            if (httpMethod.isGet()) {
                 final var resource = getClass().getClassLoader().getResource("static/register.html");
                 final var file = new File(resource.getPath());
                 final var body = Files.readString(file.toPath(), StandardCharsets.UTF_8);
@@ -164,8 +152,8 @@ public class Http11Processor implements Runnable, Processor {
                 );
             }
 
-            if (httpMethod.equals("POST")) {
-                final var formData = Arrays.stream(requestBody.split("&"))
+            if (httpMethod.isPost()) {
+                final var formData = Arrays.stream(request.body().split("&"))
                         .map(s -> s.split("="))
                         .collect(toMap(kv -> kv[0], kv -> kv[1]));
 
