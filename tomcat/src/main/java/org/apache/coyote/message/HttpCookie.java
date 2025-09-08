@@ -1,7 +1,10 @@
 package org.apache.coyote.message;
 
+import jakarta.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.catalina.session.Session;
+import org.apache.catalina.session.SessionManager;
 
 public class HttpCookie {
 
@@ -17,8 +20,12 @@ public class HttpCookie {
         this.cookies = new HashMap<>();
     }
 
-    public String getSessionId() {
-        return get(JSESSIONID);
+    public HttpSession getSession() {
+        if (has(JSESSIONID)) {
+            final var sessionId = get(JSESSIONID);
+            return SessionManager.INSTANCE.findSession(sessionId);
+        }
+        return new Session();
     }
 
     public boolean has(final String name) {

@@ -7,7 +7,12 @@ import org.apache.catalina.Manager;
 
 public class SessionManager implements Manager {
 
+    public static final SessionManager INSTANCE = new SessionManager();
+
     private final Map<String, HttpSession> sessions = new ConcurrentHashMap<>();
+
+    private SessionManager() {
+    }
 
     @Override
     public void add(final HttpSession session) {
@@ -17,7 +22,7 @@ public class SessionManager implements Manager {
     @Override
     public HttpSession findSession(final String id) {
         if (id == null || !sessions.containsKey(id)) {
-            return new Session();
+            return null;
         }
         return sessions.get(id);
     }

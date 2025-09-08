@@ -1,12 +1,28 @@
 package org.apache.coyote.message;
 
+import jakarta.servlet.http.HttpSession;
+
 public record HttpRequest(
         StartLine startLine,
         HttpHeader header,
         String body
 ) {
 
+    public HttpRequest(final StartLine startLine, final HttpHeader header, final String body) {
+        this.startLine = startLine;
+        this.header = header;
+        this.body = body;
+    }
+
+    public HttpRequest(final StartLine startLine, final HttpHeader header) {
+        this(startLine, header, "");
+    }
+
+    public HttpSession getSession() {
+        return header.getCookie().getSession();
+    }
+
     public boolean hasBody() {
-        return body != null && !body.isEmpty();
+        return !body.isEmpty();
     }
 }
