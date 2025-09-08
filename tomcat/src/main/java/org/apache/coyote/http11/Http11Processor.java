@@ -6,8 +6,6 @@ import com.techcourse.db.InMemoryUserRepository;
 import com.techcourse.exception.UncheckedServletException;
 import com.techcourse.model.User;
 import jakarta.servlet.http.HttpSession;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,11 +13,11 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import org.apache.catalina.Manager;
 import org.apache.catalina.session.SessionManager;
 import org.apache.coyote.Processor;
+import org.apache.coyote.io.HttpInputStreamReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,36 +60,12 @@ public class Http11Processor implements Runnable, Processor {
     }
 
     private String readMessage(final InputStream inputStream) throws IOException {
-        final var in = new BufferedInputStream(inputStream);
-
-        // 헤더
-        var headBuf = new ByteArrayOutputStream(4096);
-        int b, match = 0;
-        while ((b = in.read()) != -1) {
-            headBuf.write(b);
-            match = (match == 0 && b == '\r') ? 1
-                    : (match == 1 && b == '\n') ? 2
-                            : (match == 2 && b == '\r') ? 3
-                                    : (match == 3 && b == '\n') ? 4 : 0;
-            if (match == 4) {
-                break;
-            }
-        }
-
-        final var header = headBuf.toByteArray();
-        final var headerText = new String(header, 0, header.length - 4, StandardCharsets.UTF_8);
-        final var lines = headerText.split("\r\n");
-        final var requestLine = lines[0].trim();
-        final var headers = Arrays.stream(lines)
-                .skip(1)
-                .map(line -> line.split(":"))
-                .collect(toMap(kv -> kv[0].toLowerCase().trim(), kv -> kv[1].toLowerCase().trim()));
-
-        int contentLength = Integer.parseInt(headers.getOrDefault("content-length", "0"));
-        byte[] bodyBytes = in.readNBytes(contentLength);
-        String body = new String(bodyBytes, StandardCharsets.UTF_8);
-
-        return requestLine + "\r\n" + headerText + "\r\n\r\n" + body;
+        final var reader = new HttpInputStreamReader(inputStream);
+        return reader.readStartLine()
+                + "\r\n"
+                + reader.readHeader()
+                + "\r\n\r\n"
+                + reader.readBody();
     }
 
     private String createResponseMessage(final String requestMessage) throws IOException {
@@ -225,15 +199,6 @@ public class Http11Processor implements Runnable, Processor {
         return "HTTP/1.1 404 Not Found \r\nContent-Length: 0 ";
     }
 
-    private String createBadRequestResponse() {
-        final var errorMessage = "잘못된 요청입니다.";
-        return "HTTP/1.1 400 Bad Request \r\n" +
-                "Content-Type: text/plain;charset=utf-8 \r\n" +
-                "Content-Length: " + errorMessage.getBytes().length + " \r\n" +
-                "\r\n" +
-                errorMessage;
-    }
-
     private String getExtension(final String uri) {
         if (uri.lastIndexOf('.') == -1) {
             return "";
@@ -253,20 +218,5 @@ public class Http11Processor implements Runnable, Processor {
             return user;
         }
         return null;
-    }
-
-    private Map<String, String> extractQueryParams(final String uri) {
-        if (!uri.contains("?")) {
-            return Collections.emptyMap();
-        }
-
-        final var queryParams = uri.substring(uri.indexOf("?") + 1);
-        return Arrays.stream(queryParams.split("&"))
-                .map(param -> param.split("="))
-                .filter(param -> param.length == 2)
-                .collect(toMap(
-                        param -> param[0],
-                        param -> param[1])
-                );
     }
 }
