@@ -3,7 +3,6 @@ package org.apache.coyote.message;
 import jakarta.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.catalina.session.Session;
 import org.apache.catalina.session.SessionManager;
 
 public class HttpCookie {
@@ -21,11 +20,7 @@ public class HttpCookie {
     }
 
     public HttpSession getSession() {
-        final var session = SessionManager.INSTANCE.findSession(get(JSESSIONID));
-        if  (session == null) {
-            return new Session();
-        }
-        return session;
+        return SessionManager.INSTANCE.findSession(get(JSESSIONID));
     }
 
     public String get(final String name) {
