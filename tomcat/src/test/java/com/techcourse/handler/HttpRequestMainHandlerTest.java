@@ -7,7 +7,7 @@ import java.util.Map;
 import org.apache.coyote.message.HttpHeader;
 import org.apache.coyote.message.HttpMethod;
 import org.apache.coyote.message.HttpRequest;
-import org.apache.coyote.message.StartLine;
+import org.apache.coyote.message.RequestLine;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -21,7 +21,7 @@ class HttpRequestMainHandlerTest {
         // given
         final var handler = new HttpRequestMainHandler();
 
-        final var get_http11 = new StartLine(HttpMethod.GET, uri, "HTTP/1.1");
+        final var get_http11 = new RequestLine(HttpMethod.GET, uri, "HTTP/1.1");
         final var empty_header = new HttpHeader(Map.of());
         final var request = new HttpRequest(get_http11, empty_header);
 

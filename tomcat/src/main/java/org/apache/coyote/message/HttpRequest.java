@@ -4,19 +4,19 @@ import jakarta.servlet.http.HttpSession;
 import java.util.Objects;
 
 public record HttpRequest(
-        StartLine startLine,
+        RequestLine requestLine,
         HttpHeader header,
         String body
 ) {
 
-    public HttpRequest(final StartLine startLine, final HttpHeader header, final String body) {
-        this.startLine = Objects.requireNonNull(startLine);
+    public HttpRequest(final RequestLine requestLine, final HttpHeader header, final String body) {
+        this.requestLine = Objects.requireNonNull(requestLine);
         this.header = Objects.requireNonNull(header);
         this.body = Objects.requireNonNull(body);
     }
 
-    public HttpRequest(final StartLine startLine, final HttpHeader header) {
-        this(startLine, header, "");
+    public HttpRequest(final RequestLine requestLine, final HttpHeader header) {
+        this(requestLine, header, "");
     }
 
     public HttpSession getSession() {

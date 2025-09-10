@@ -2,22 +2,18 @@ package com.techcourse.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import org.apache.coyote.http11.Http11Processor;
 import org.apache.coyote.message.HttpHeader;
 import org.apache.coyote.message.HttpMethod;
 import org.apache.coyote.message.HttpRequest;
-import org.apache.coyote.message.StartLine;
+import org.apache.coyote.message.RequestLine;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import support.StubSocket;
 
 class ResourceHandlerTest {
 
@@ -27,7 +23,7 @@ class ResourceHandlerTest {
         // given
         final var handler = new ResourceHandler();
 
-        final var get_indexhtml_http11 = new StartLine(HttpMethod.GET, "/index.html", "HTTP/1.1");
+        final var get_indexhtml_http11 = new RequestLine(HttpMethod.GET, "/index.html", "HTTP/1.1");
         final var empty_header = new HttpHeader(Map.of());
         final var request = new HttpRequest(get_indexhtml_http11, empty_header);
 
@@ -52,7 +48,7 @@ class ResourceHandlerTest {
         // given
         final var handler = new ResourceHandler();
 
-        final var get_stylescss_http11 = new StartLine(HttpMethod.GET, "/css/styles.css", "HTTP/1.1");
+        final var get_stylescss_http11 = new RequestLine(HttpMethod.GET, "/css/styles.css", "HTTP/1.1");
         final var empty_header = new HttpHeader(Map.of());
         final var request = new HttpRequest(get_stylescss_http11, empty_header);
 
@@ -83,7 +79,7 @@ class ResourceHandlerTest {
         // given
         final var handler = new ResourceHandler();
 
-        final var get_path_http11 = new StartLine(HttpMethod.GET, path, "HTTP/1.1");
+        final var get_path_http11 = new RequestLine(HttpMethod.GET, path, "HTTP/1.1");
         final var empty_header = new HttpHeader(Map.of());
         final var request = new HttpRequest(get_path_http11, empty_header);
 

@@ -11,7 +11,7 @@ public class HttpRequestMainHandler {
     private final ResourceHandler resourceHandler = new ResourceHandler();
 
     public String handle(final HttpRequest request) throws IOException {
-        final var uri = request.startLine().uri();
+        final var uri = request.requestLine().uri();
 
         if (uri.isEmpty() || uri.equals("/")) {
             return homeHandler.handle(request);

@@ -14,7 +14,7 @@ import org.apache.coyote.message.HttpRequest;
 public class RegisterHandler {
 
     public String handle(final HttpRequest request) throws IOException {
-        final var httpMethod = request.startLine().httpMethod();
+        final var httpMethod = request.requestLine().httpMethod();
 
         if (httpMethod.isGet()) {
             final var body = new StaticResource("register.html").readAsString();

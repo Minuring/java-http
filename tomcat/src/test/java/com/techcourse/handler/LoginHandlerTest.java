@@ -1,20 +1,17 @@
 package com.techcourse.handler;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import org.apache.coyote.http11.Http11Processor;
 import org.apache.coyote.message.HttpHeader;
 import org.apache.coyote.message.HttpMethod;
 import org.apache.coyote.message.HttpRequest;
-import org.apache.coyote.message.StartLine;
+import org.apache.coyote.message.RequestLine;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import support.StubSocket;
 
 class LoginHandlerTest {
 
@@ -24,7 +21,7 @@ class LoginHandlerTest {
         // given
         final var handler = new LoginHandler();
 
-        final var get_login_http11 = new StartLine(HttpMethod.GET, "/login", "HTTP/1.1");
+        final var get_login_http11 = new RequestLine(HttpMethod.GET, "/login", "HTTP/1.1");
         final var empty_header = new HttpHeader(Map.of());
         final var request = new HttpRequest(get_login_http11, empty_header);
 
@@ -50,7 +47,7 @@ class LoginHandlerTest {
         final var handler = new LoginHandler();
 
         final var formRequestBody = "account=gugu&password=password";
-        final var post_login_http11 = new StartLine(HttpMethod.POST, "/login", "HTTP/1.1");
+        final var post_login_http11 = new RequestLine(HttpMethod.POST, "/login", "HTTP/1.1");
         final var header = new HttpHeader(Map.of(
                 "Content-Type", "application/x-www-form-urlencoded",
                 "Content-Length", formRequestBody.getBytes().length + ""
@@ -74,7 +71,7 @@ class LoginHandlerTest {
         final var handler = new LoginHandler();
 
         final var formRequestBody = "account=gugu&password=password";
-        final var post_login_http11 = new StartLine(HttpMethod.POST, "/login", "HTTP/1.1");
+        final var post_login_http11 = new RequestLine(HttpMethod.POST, "/login", "HTTP/1.1");
         final var header = new HttpHeader(Map.of(
                 "Content-Type", "application/x-www-form-urlencoded",
                 "Content-Length", formRequestBody.getBytes().length + ""
@@ -95,7 +92,7 @@ class LoginHandlerTest {
         final var handler = new LoginHandler();
 
         final var formRequestBody = "account=abcd&password=defg";
-        final var post_login_http11 = new StartLine(HttpMethod.POST, "/login", "HTTP/1.1");
+        final var post_login_http11 = new RequestLine(HttpMethod.POST, "/login", "HTTP/1.1");
         final var header = new HttpHeader(Map.of(
                 "Content-Type", "application/x-www-form-urlencoded",
                 "Content-Length", formRequestBody.getBytes().length + ""

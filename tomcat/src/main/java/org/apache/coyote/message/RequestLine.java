@@ -1,6 +1,6 @@
 package org.apache.coyote.message;
 
-public record StartLine(
+public record RequestLine(
         HttpMethod httpMethod,
         String uri,
         String httpVersion

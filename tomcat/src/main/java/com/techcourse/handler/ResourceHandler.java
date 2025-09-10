@@ -15,7 +15,7 @@ public class ResourceHandler {
     );
 
     public String handle(final HttpRequest request) throws IOException {
-        final var uri = request.startLine().uri();
+        final var uri = request.requestLine().uri();
         final var resource = new StaticResource(uri);
 
         final var contentType = CONTENT_TYPE_MAP.getOrDefault(resource.getExtension(), "text/html");

@@ -7,14 +7,14 @@ import java.util.Objects;
 import org.apache.coyote.message.HttpCookie;
 import org.apache.coyote.message.HttpHeader;
 import org.apache.coyote.message.HttpMethod;
-import org.apache.coyote.message.StartLine;
+import org.apache.coyote.message.RequestLine;
 
 public class HttpMessageParser {
 
     private static final String BLANK = " ";
     private static final String CRLF = "\r\n";
 
-    public StartLine parseStartLine(final String startLine) {
+    public RequestLine parseStartLine(final String startLine) {
         Objects.requireNonNull(startLine);
         final var split = startLine.split(BLANK);
         assert split.length >= 3;
@@ -22,7 +22,7 @@ public class HttpMessageParser {
         final var httpMethod = HttpMethod.fromString(split[0].trim());
         final var uri = split[1].trim();
         final var httpVersion = split[2].trim();
-        return new StartLine(httpMethod, uri, httpVersion);
+        return new RequestLine(httpMethod, uri, httpVersion);
     }
 
     public HttpHeader parseHeader(final String headers) {

@@ -9,7 +9,7 @@ import java.util.Map;
 import org.apache.coyote.message.HttpHeader;
 import org.apache.coyote.message.HttpMethod;
 import org.apache.coyote.message.HttpRequest;
-import org.apache.coyote.message.StartLine;
+import org.apache.coyote.message.RequestLine;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +21,7 @@ class RegisterHandlerTest {
         // given
         final var handler = new RegisterHandler();
 
-        final var get_register_http11 = new StartLine(HttpMethod.GET, "/register", "HTTP/1.1");
+        final var get_register_http11 = new RequestLine(HttpMethod.GET, "/register", "HTTP/1.1");
         final var header = new HttpHeader(Map.of());
         final var request = new HttpRequest(get_register_http11, header);
 
@@ -47,7 +47,7 @@ class RegisterHandlerTest {
         final var handler = new RegisterHandler();
 
         final var formRequestBody = "account=popo&password=password&email=popo@gmail.com";
-        final var post_register_http11 = new StartLine(HttpMethod.POST, "/register", "HTTP/1.1");
+        final var post_register_http11 = new RequestLine(HttpMethod.POST, "/register", "HTTP/1.1");
         final var header = new HttpHeader(Map.of(
                 "Content-Type", "application/x-www-form-urlencoded",
                 "Content-Length", formRequestBody.getBytes().length + ""

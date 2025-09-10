@@ -27,7 +27,7 @@ public class LoginHandler {
         }
 
         // 계정, 비밀번호를 입력한 경우 로그인 시도
-        final var httpMethod = request.startLine().httpMethod();
+        final var httpMethod = request.requestLine().httpMethod();
         if (httpMethod.isPost()) {
             final var formData = Arrays.stream(request.body().split("&"))
                     .map(s -> s.split("="))
