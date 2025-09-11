@@ -20,7 +20,7 @@ public class LoginHandler implements HttpRequestHandler {
     private static final Logger log = LoggerFactory.getLogger(LoginHandler.class);
 
     public String handle(final HttpRequest request) throws IOException {
-        final var session = findSession(request);
+        final var session = findOrCreateSession(request);
 
         if (session.getAttribute("user") != null) {
             return "HTTP/1.1 302 Found\r\nLocation: /index.html";
@@ -57,8 +57,13 @@ public class LoginHandler implements HttpRequestHandler {
         );
     }
 
-    private HttpSession findSession(final HttpRequest request) {
-        final var session = request.getSession();
+    private HttpSession findOrCreateSession(final HttpRequest request) {
+        final var sessionId = request.getSessionId();
+        if (sessionId == null) {
+            return new Session();
+        }
+
+        final var session = SessionManager.INSTANCE.findSession(sessionId);
         if (session != null) {
             return session;
         }

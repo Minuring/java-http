@@ -12,12 +12,11 @@ public class HttpRequestRouter {
     private static final Map<Predicate<String>, HttpRequestHandler> SEQUENCED_ROUTER;
 
     static {
-        SEQUENCED_ROUTER = new LinkedHashMap<>(Map.ofEntries(
-                Map.entry(uri -> uri.isEmpty() || uri.equals("/"), new HomeHandler()),
-                Map.entry(uri -> uri.startsWith("/login"), new LoginHandler()),
-                Map.entry(uri -> uri.startsWith("/register"), new RegisterHandler()),
-                Map.entry(uri -> getResource(uri) != null, new ResourceHandler())
-        ));
+        SEQUENCED_ROUTER = new LinkedHashMap<>();
+        SEQUENCED_ROUTER.put(uri -> uri.isEmpty() || uri.equals("/"), new HomeHandler());
+        SEQUENCED_ROUTER.put(uri -> uri.startsWith("/login"), new LoginHandler());
+        SEQUENCED_ROUTER.put(uri -> uri.startsWith("/register"), new RegisterHandler());
+        SEQUENCED_ROUTER.put(uri -> getResource(uri) != null, new ResourceHandler());
     }
 
     public String route(final HttpRequest request) throws IOException {
@@ -26,7 +25,6 @@ public class HttpRequestRouter {
         for (final var entry : SEQUENCED_ROUTER.entrySet()) {
             final var predicate = entry.getKey();
             final var handler = entry.getValue();
-
             if (predicate.test(uri)) {
                 return handler.handle(request);
             }
