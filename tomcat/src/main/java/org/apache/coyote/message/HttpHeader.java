@@ -10,11 +10,11 @@ public class HttpHeader {
     private final HttpCookie cookie;
 
     public HttpHeader(final Map<String, String> headers, final HttpCookie cookie) {
-        Objects.requireNonNull(headers);
-        Objects.requireNonNull(cookie);
+        if (headers != null) {
+            headers.forEach((k, v) -> this.headers.put(k.toLowerCase(), v.toLowerCase()));
+        }
 
-        headers.forEach((k, v) -> this.headers.put(k.toLowerCase(), v.toLowerCase()));
-        this.cookie = cookie;
+        this.cookie = Objects.requireNonNullElse(cookie, new HttpCookie());
     }
 
     public HttpHeader(final Map<String, String> headers) {

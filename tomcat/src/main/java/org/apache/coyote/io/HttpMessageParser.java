@@ -15,7 +15,7 @@ public class HttpMessageParser {
     private static final String CRLF = "\r\n";
 
     public RequestLine parseStartLine(final String startLine) {
-        Objects.requireNonNull(startLine);
+        Objects.requireNonNull(startLine, "request line cannot be null");
         final var split = startLine.split(BLANK);
         assert split.length >= 3;
 
@@ -26,7 +26,7 @@ public class HttpMessageParser {
     }
 
     public HttpHeader parseHeader(final String headers) {
-        Objects.requireNonNull(headers);
+        Objects.requireNonNull(headers, "headers cannot be null");
 
         final var headersMap = Arrays.stream(headers.split(CRLF))
                 .map(header -> header.split(":", 2))
