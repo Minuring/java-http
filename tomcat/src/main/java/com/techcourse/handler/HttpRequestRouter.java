@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import org.apache.coyote.message.HttpRequest;
 
-public class HttpRequestMainHandler {
+public class HttpRequestRouter {
 
     private static final Map<Predicate<String>, HttpRequestHandler> SEQUENCED_ROUTER;
 
@@ -20,7 +20,7 @@ public class HttpRequestMainHandler {
         ));
     }
 
-    public String handle(final HttpRequest request) throws IOException {
+    public String route(final HttpRequest request) throws IOException {
         final var uri = request.requestLine().uri();
 
         for (final var entry : SEQUENCED_ROUTER.entrySet()) {
@@ -36,6 +36,6 @@ public class HttpRequestMainHandler {
     }
 
     private static URL getResource(final String uri) {
-        return HttpRequestMainHandler.class.getClassLoader().getResource("static" + uri);
+        return HttpRequestRouter.class.getClassLoader().getResource("static" + uri);
     }
 }

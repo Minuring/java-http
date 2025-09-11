@@ -1,7 +1,7 @@
 package org.apache.coyote.http11;
 
 import com.techcourse.exception.UncheckedServletException;
-import com.techcourse.handler.HttpRequestMainHandler;
+import com.techcourse.handler.HttpRequestRouter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -34,8 +34,8 @@ public class Http11Processor implements Runnable, Processor {
              final var outputStream = connection.getOutputStream()) {
 
             final var httpRequest = readMessage(inputStream);
-            final var handler = new HttpRequestMainHandler();
-            final var response = handler.handle(httpRequest);
+            final var handler = new HttpRequestRouter();
+            final var response = handler.route(httpRequest);
 
             outputStream.write(response.getBytes());
             outputStream.flush();

@@ -11,7 +11,7 @@ import org.apache.coyote.message.RequestLine;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-class HttpRequestMainHandlerTest {
+class HttpRequestRouterTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
@@ -19,14 +19,14 @@ class HttpRequestMainHandlerTest {
     })
     void notFound(final String uri) throws IOException {
         // given
-        final var handler = new HttpRequestMainHandler();
+        final var handler = new HttpRequestRouter();
 
         final var get_http11 = new RequestLine(HttpMethod.GET, uri, "HTTP/1.1");
         final var empty_header = new HttpHeader(Map.of());
         final var request = new HttpRequest(get_http11, empty_header);
 
         // when
-        final var result = handler.handle(request);
+        final var result = handler.route(request);
 
         // then
         assertThat(result).containsSubsequence(
