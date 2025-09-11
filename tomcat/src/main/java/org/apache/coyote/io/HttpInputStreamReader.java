@@ -4,7 +4,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.coyote.io.HttpInputStreamReader.Phase.BODY;
 import static org.apache.coyote.io.HttpInputStreamReader.Phase.FINISHED;
 import static org.apache.coyote.io.HttpInputStreamReader.Phase.HEADERS;
-import static org.apache.coyote.io.HttpInputStreamReader.Phase.STARTLINE;
+import static org.apache.coyote.io.HttpInputStreamReader.Phase.REQUEST_LINE;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,8 +22,8 @@ public class HttpInputStreamReader extends InputStreamReader {
 
     private byte[] headBuffer;
     private byte[] bodyBuffer;
-    private Phase phase = STARTLINE;
-    private int startLineEndIndex;
+    private Phase phase = REQUEST_LINE;
+    private int requestLineEndIndex;
     private int headerEndIndex;
 
     public HttpInputStreamReader(final InputStream in) {
@@ -31,15 +31,15 @@ public class HttpInputStreamReader extends InputStreamReader {
         this.in = in;
     }
 
-    public String readStartLine() throws IOException {
+    public String readRequestLine() throws IOException {
         ensureHeaderRead();
-        final var bytes = Arrays.copyOfRange(headBuffer, 0, startLineEndIndex + 1);
+        final var bytes = Arrays.copyOfRange(headBuffer, 0, requestLineEndIndex + 1);
         return new String(bytes, UTF_8);
     }
 
     public String readHeader() throws IOException {
         ensureHeaderRead();
-        final var bytes = Arrays.copyOfRange(headBuffer, startLineEndIndex + 3, headerEndIndex + 1);
+        final var bytes = Arrays.copyOfRange(headBuffer, requestLineEndIndex + 3, headerEndIndex + 1);
         return new String(bytes, UTF_8);
     }
 
@@ -96,8 +96,8 @@ public class HttpInputStreamReader extends InputStreamReader {
             }
 
             buffer[i] = b;
-            if (phase == STARTLINE && i >= 1 && buffer[i] == LF && buffer[i - 1] == CR) {
-                this.startLineEndIndex = i - 2;
+            if (phase == REQUEST_LINE && i >= 1 && buffer[i] == LF && buffer[i - 1] == CR) {
+                this.requestLineEndIndex = i - 2;
                 this.phase = HEADERS;
 
             } else if (phase == HEADERS) {
@@ -120,6 +120,6 @@ public class HttpInputStreamReader extends InputStreamReader {
     }
 
     enum Phase {
-        STARTLINE, HEADERS, BODY, FINISHED
+        REQUEST_LINE, HEADERS, BODY, FINISHED
     }
 }

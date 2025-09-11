@@ -12,17 +12,17 @@ class HttpInputStreamReaderTest {
 
     @Test
     @DisplayName("InputStream으로부터 HTTP 요청 라인을 읽는다.")
-    void readStartLine() throws IOException {
+    void readRequestLine() throws IOException {
         // given
         final var httpMessage = "GET /index.html HTTP/1.1\r\nContent-Length: 10\r\n\r\nhi";
         final var inputStream = new ByteArrayInputStream(httpMessage.getBytes());
         final var httpInputStream = new HttpInputStreamReader(inputStream);
 
         // when
-        final var startLine = httpInputStream.readStartLine();
+        final var requestLine = httpInputStream.readRequestLine();
 
         // then
-        assertThat(startLine).isEqualTo("GET /index.html HTTP/1.1");
+        assertThat(requestLine).isEqualTo("GET /index.html HTTP/1.1");
     }
 
     @Test

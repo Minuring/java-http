@@ -12,18 +12,18 @@ class HttpMessageParserTest {
 
     @Test
     @DisplayName("HTTP 요청 메시지의 시작 줄을 파싱한다.")
-    void parseStartLine() {
+    void parseRequestLine() {
         // given
         final var parser = new HttpMessageParser();
 
         // when
-        final var startLine = parser.parseStartLine("GET /foo HTTP/1.1");
+        final var requestLine = parser.parseRequestLine("GET /foo HTTP/1.1");
 
         // then
         assertAll(
-                () -> assertThat(startLine.httpMethod()).isEqualTo(HttpMethod.GET),
-                () -> assertThat(startLine.uri()).isEqualTo("/foo"),
-                () -> assertThat(startLine.httpVersion()).isEqualTo("HTTP/1.1")
+                () -> assertThat(requestLine.httpMethod()).isEqualTo(HttpMethod.GET),
+                () -> assertThat(requestLine.uri()).isEqualTo("/foo"),
+                () -> assertThat(requestLine.httpVersion()).isEqualTo("HTTP/1.1")
         );
     }
 

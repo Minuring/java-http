@@ -14,9 +14,9 @@ public class HttpMessageParser {
     private static final String BLANK = " ";
     private static final String CRLF = "\r\n";
 
-    public RequestLine parseStartLine(final String startLine) {
-        Objects.requireNonNull(startLine, "request line cannot be null");
-        final var split = startLine.split(BLANK);
+    public RequestLine parseRequestLine(final String requestLine) {
+        Objects.requireNonNull(requestLine, "request line cannot be null");
+        final var split = requestLine.split(BLANK);
         assert split.length >= 3;
 
         final var httpMethod = HttpMethod.fromString(split[0].trim());
