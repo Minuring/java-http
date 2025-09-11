@@ -16,7 +16,7 @@ public class HttpRequestRouter {
                 Map.entry(uri -> uri.isEmpty() || uri.equals("/"), new HomeHandler()),
                 Map.entry(uri -> uri.startsWith("/login"), new LoginHandler()),
                 Map.entry(uri -> uri.startsWith("/register"), new RegisterHandler()),
-                Map.entry(uri -> getResource(uri) != null, new HomeHandler())
+                Map.entry(uri -> getResource(uri) != null, new ResourceHandler())
         ));
     }
 
