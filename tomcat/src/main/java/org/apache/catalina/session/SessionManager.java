@@ -21,10 +21,11 @@ public class SessionManager implements Manager {
 
     @Override
     public HttpSession findSession(final String id) {
-        if (id == null || !sessions.containsKey(id)) {
+        if (id == null) {
             return null;
         }
-        return sessions.get(id);
+
+        return sessions.get(id.toLowerCase());
     }
 
     @Override

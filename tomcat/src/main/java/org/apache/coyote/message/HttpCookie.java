@@ -8,16 +8,15 @@ import org.apache.catalina.session.SessionManager;
 
 public class HttpCookie {
 
-    private static final String JSESSIONID = "JSESSIONID";
+    private static final String JSESSIONID = "jsessionid";
 
-    private final Map<String, String> cookies;
+    private final Map<String, String> cookies = new HashMap<>();
 
     public HttpCookie(final Map<String, String> cookies) {
-        this.cookies = Objects.requireNonNull(cookies);
+        cookies.forEach((k, v) -> this.cookies.put(k.toLowerCase(), v.toLowerCase()));
     }
 
     public HttpCookie() {
-        this.cookies = new HashMap<>();
     }
 
     public HttpSession getSession() {
@@ -25,6 +24,6 @@ public class HttpCookie {
     }
 
     public String get(final String name) {
-        return cookies.get(name);
+        return cookies.get(name.toLowerCase());
     }
 }

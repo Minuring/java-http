@@ -2,10 +2,14 @@ package com.techcourse.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.techcourse.model.User;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import org.apache.catalina.session.Session;
+import org.apache.catalina.session.SessionManager;
+import org.apache.coyote.message.HttpCookie;
 import org.apache.coyote.message.HttpHeader;
 import org.apache.coyote.message.HttpMethod;
 import org.apache.coyote.message.HttpRequest;
@@ -38,6 +42,27 @@ class LoginHandlerTest {
                 "\r\n\r\n",
                 content
         );
+    }
+
+    @Test
+    @DisplayName("GET /login 요청 시 이미 로그인되어 있으면 index.html로 redirect한다.")
+    void login_redirect() throws IOException {
+        // given
+        final var handler = new LoginHandler();
+
+        final var session = new Session();
+        session.setAttribute("user", new User("gugu", "password", "email@email.com"));
+        SessionManager.INSTANCE.add(session);
+
+        final var get_login_http11 = new RequestLine(HttpMethod.GET, "/login", "HTTP/1.1");
+        final var empty_header = new HttpHeader(Map.of(), new HttpCookie(Map.of("JSESSIONID", session.getId())));
+        final var request = new HttpRequest(get_login_http11, empty_header);
+
+        // when
+        final var result = handler.handle(request);
+
+        // then
+        assertThat(result).contains("HTTP/1.1 302 Found\r\nLocation: /index.html");
     }
 
     @Test
