@@ -11,7 +11,7 @@ import java.util.Map;
 import org.apache.coyote.io.StaticResource;
 import org.apache.coyote.message.HttpRequest;
 
-public class RegisterHandler {
+public class RegisterHandler implements HttpRequestHandler {
 
     public String handle(final HttpRequest request) throws IOException {
         final var httpMethod = request.requestLine().httpMethod();

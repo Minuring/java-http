@@ -6,7 +6,7 @@ import java.util.Map;
 import org.apache.coyote.io.StaticResource;
 import org.apache.coyote.message.HttpRequest;
 
-public class ResourceHandler {
+public class ResourceHandler implements HttpRequestHandler {
 
     private static final Map<String, String> CONTENT_TYPE_MAP = Map.of(
             "html", "text/html",

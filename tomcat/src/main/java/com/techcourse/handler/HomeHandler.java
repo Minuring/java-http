@@ -3,7 +3,7 @@ package com.techcourse.handler;
 import java.nio.charset.StandardCharsets;
 import org.apache.coyote.message.HttpRequest;
 
-public class HomeHandler {
+public class HomeHandler implements HttpRequestHandler {
 
     public String handle(final HttpRequest request) {
         return String.join("\r\n",

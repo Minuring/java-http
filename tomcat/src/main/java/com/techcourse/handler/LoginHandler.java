@@ -15,7 +15,7 @@ import org.apache.coyote.message.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LoginHandler {
+public class LoginHandler implements HttpRequestHandler {
 
     private static final Logger log = LoggerFactory.getLogger(LoginHandler.class);
 
