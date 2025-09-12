@@ -42,7 +42,7 @@ public class HttpResponseEncoder {
         if (cookieHeader.isEmpty()) {
             return headers;
         }
-        return headers + CRLF + cookieHeader;
+        return String.join(CRLF, headers, cookieHeader);
     }
 
     private static String encodeCookieHeader(final HttpCookie cookie) {
