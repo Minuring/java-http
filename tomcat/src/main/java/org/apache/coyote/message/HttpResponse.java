@@ -1,7 +1,11 @@
 package org.apache.coyote.message;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.apache.coyote.io.HttpResponseEncoder;
 
 public class HttpResponse {
 
@@ -15,8 +19,10 @@ public class HttpResponse {
         this.body = body;
     }
 
-    public static Builder badRequest() {
-        return builder(HttpStatusCode.BAD_REQUEST);
+    public void writeTo(final OutputStream os) throws IOException {
+        final var encoder = new HttpResponseEncoder();
+        final var encoded = encoder.encode(this);
+        os.write(encoded.getBytes(StandardCharsets.UTF_8));
     }
 
     public StatusLine getStatusLine() {
@@ -41,6 +47,10 @@ public class HttpResponse {
 
     public static Builder found() {
         return builder(HttpStatusCode.FOUND);
+    }
+
+    public static Builder badRequest() {
+        return builder(HttpStatusCode.BAD_REQUEST);
     }
 
     public static Builder notFound() {
