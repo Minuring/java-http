@@ -11,7 +11,7 @@ public class HttpCookie {
     private final Map<String, String> cookies = new HashMap<>();
 
     public HttpCookie(final Map<String, String> cookies) {
-        cookies.forEach((k, v) -> this.cookies.put(k.toLowerCase(), v.toLowerCase()));
+        cookies.forEach((k, v) -> this.cookies.put(k.toLowerCase(), v));
     }
 
     public HttpCookie() {
