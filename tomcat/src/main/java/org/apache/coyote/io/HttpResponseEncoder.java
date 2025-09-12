@@ -16,11 +16,12 @@ public class HttpResponseEncoder {
         final var header = encodeHeader(response.getHeader());
         final var body = response.getBody();
 
-        if (body == null || body.isEmpty()) {
-            return statusLine + CRLF + header;
+        final var message = statusLine + CRLF + header + CRLF + CRLF;
+        if (body != null && !body.isEmpty()) {
+            return message + body;
         }
 
-        return statusLine + CRLF + header + CRLF + CRLF + body;
+        return message;
     }
 
     private String encodeStatusLine(final StatusLine statusLine) {
