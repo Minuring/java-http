@@ -22,7 +22,7 @@ public class LoginController extends AbstractController {
     private static final Logger log = LoggerFactory.getLogger(LoginController.class);
 
     @Override
-    public HttpResponse doGet(final HttpRequest request) {
+    public HttpResponse doGet(final HttpRequest request) throws Exception {
         final var session = findOrCreateSession(request);
         if (session.getAttribute("user") != null) {
             return HttpResponse.found()

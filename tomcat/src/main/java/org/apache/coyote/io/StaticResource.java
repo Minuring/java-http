@@ -18,17 +18,13 @@ public class StaticResource {
 
     private final URL resource;
 
-    public StaticResource(final String resourceName) {
+    public StaticResource(final String resourceName) throws FileNotFoundException {
         final var isStatic = EXTENSIONS.stream().anyMatch(resourceName::endsWith);
         if (!isStatic) {
             throw new IllegalArgumentException("Resource name '" + resourceName + "' is not a static resource");
         }
 
-        try {
-            resource = getResource(resourceName);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        resource = getResource(resourceName);
     }
 
     private URL getResource(final String resourceName) throws FileNotFoundException {
