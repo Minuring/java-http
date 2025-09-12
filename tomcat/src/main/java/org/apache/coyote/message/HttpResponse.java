@@ -15,6 +15,10 @@ public class HttpResponse {
         this.body = body;
     }
 
+    public static Builder badRequest() {
+        return builder(HttpStatusCode.BAD_REQUEST);
+    }
+
     public StatusLine getStatusLine() {
         return statusLine;
     }

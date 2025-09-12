@@ -27,14 +27,16 @@ public class RegisterController extends AbstractController {
 
     @Override
     protected HttpResponse doPost(final HttpRequest request) throws Exception {
-        final var formData = Arrays.stream(request.body().split("&"))
-                .map(s -> s.split("="))
-                .collect(toMap(kv -> kv[0], kv -> kv[1]));
+        final var formData = parseBodyAsForm(request);
+        if (isValidForm(formData)) {
+            register(formData);
+            return HttpResponse.builder(HttpStatusCode.FOUND)
+                    .location("/index.html")
+                    .build();
+        }
 
-        register(formData);
-
-        return HttpResponse.builder(HttpStatusCode.FOUND)
-                .location("/index.html")
+        return HttpResponse.badRequest()
+                .body("계정 또는 비밀번호 또는 이메일이 올바르지 않습니다.")
                 .build();
     }
 
@@ -42,7 +44,20 @@ public class RegisterController extends AbstractController {
         final var account = formData.get("account");
         final var password = formData.get("password");
         final var email = formData.get("email");
+
         final var user = new User(account, password, email);
         InMemoryUserRepository.save(user);
+    }
+
+    private Map<String, String> parseBodyAsForm(final HttpRequest request) {
+        return Arrays.stream(request.body().split("&"))
+                .map(s -> s.split("="))
+                .collect(toMap(kv -> kv[0], kv -> kv[1]));
+    }
+
+    private boolean isValidForm(final Map<String, String> form) {
+        return form.containsKey("account")
+                && form.containsKey("email")
+                && form.containsKey("password");
     }
 }
