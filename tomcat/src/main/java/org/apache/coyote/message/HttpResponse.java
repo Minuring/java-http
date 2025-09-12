@@ -35,6 +35,10 @@ public class HttpResponse {
         return builder(HttpStatusCode.OK);
     }
 
+    public static Builder found() {
+        return builder(HttpStatusCode.FOUND);
+    }
+
     public static Builder notFound() {
         final var builder = builder(HttpStatusCode.NOT_FOUND);
         return builder.contentLength(0);

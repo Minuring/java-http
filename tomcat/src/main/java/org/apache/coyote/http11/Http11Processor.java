@@ -1,7 +1,7 @@
 package org.apache.coyote.http11;
 
 import com.techcourse.exception.UncheckedServletException;
-import com.techcourse.handler.HttpRequestRouter;
+import com.techcourse.controller.HttpRequestRouter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;

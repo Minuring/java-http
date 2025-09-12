@@ -1,4 +1,4 @@
-package com.techcourse.handler;
+package com.techcourse.controller;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,20 +18,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-class ResourceHandlerTest {
+class ResourceControllerTest {
 
     @Test
     @DisplayName("GET /index.html 요청 시 Content-Type: text/html로 반환한다.")
-    void index() throws IOException {
+    void index() throws Exception {
         // given
-        final var handler = new ResourceHandler();
+        final var controller = new ResourceController();
 
         final var get_indexhtml_http11 = new RequestLine(HttpMethod.GET, "/index.html", "HTTP/1.1");
         final var empty_header = new HttpHeader(Map.of());
         final var request = new HttpRequest(get_indexhtml_http11, empty_header);
 
         // when
-        final var result = handler.handle(request);
+        final var result = controller.service(request);
 
         // then
         final var resource = getClass().getClassLoader().getResource("static/index.html");
@@ -46,16 +46,16 @@ class ResourceHandlerTest {
 
     @Test
     @DisplayName("GET /styles.css 요청 시 Content-Type: text/css로 반환한다.")
-    void css() throws IOException {
+    void css() throws Exception {
         // given
-        final var handler = new ResourceHandler();
+        final var controller = new ResourceController();
 
         final var get_stylescss_http11 = new RequestLine(HttpMethod.GET, "/css/styles.css", "HTTP/1.1");
         final var empty_header = new HttpHeader(Map.of());
         final var request = new HttpRequest(get_stylescss_http11, empty_header);
 
         // when
-        final var result = handler.handle(request);
+        final var result = controller.service(request);
 
         // then
         final var resource = getClass().getClassLoader().getResource("static/css/styles.css");
@@ -76,16 +76,16 @@ class ResourceHandlerTest {
             "/assets/chart-pie.js",
     })
     @DisplayName("GET /~.js 요청 시 Content-Type: application/javascript로 반환한다.")
-    void js(final String path) throws IOException {
+    void js(final String path) throws Exception {
         // given
-        final var handler = new ResourceHandler();
+        final var controller = new ResourceController();
 
         final var get_path_http11 = new RequestLine(HttpMethod.GET, path, "HTTP/1.1");
         final var empty_header = new HttpHeader(Map.of());
         final var request = new HttpRequest(get_path_http11, empty_header);
 
         // when
-        final var result = handler.handle(request);
+        final var result = controller.service(request);
 
         // then
         final var resource = getClass().getClassLoader().getResource("static" + path);
