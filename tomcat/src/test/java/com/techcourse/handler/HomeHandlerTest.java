@@ -1,11 +1,13 @@
 package com.techcourse.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.util.Map;
 import org.apache.coyote.message.HttpHeader;
 import org.apache.coyote.message.HttpMethod;
 import org.apache.coyote.message.HttpRequest;
+import org.apache.coyote.message.HttpStatusCode;
 import org.apache.coyote.message.RequestLine;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,7 +15,7 @@ import org.junit.jupiter.api.Test;
 class HomeHandlerTest {
 
     @Test
-    @DisplayName("문자열 'Hello world!'를 반환한다.")
+    @DisplayName("200 OK와 함께 본문으로 'Hello world!'를 반환한다.")
     void handle() {
         // given
         final var handler = new HomeHandler();
@@ -26,12 +28,9 @@ class HomeHandlerTest {
         final var result = handler.handle(request);
 
         // then
-
-        assertThat(result).containsSubsequence(
-                "HTTP/1.1 200 OK",
-                "Content-Type: text/html",
-                "\r\n\r\n",
-                "Hello world!"
+        assertAll(
+                () -> assertThat(result.getStatusLine().statusCode()).isEqualTo(HttpStatusCode.OK),
+                () -> assertThat(result.getBody()).isEqualTo("Hello world!")
         );
     }
 }

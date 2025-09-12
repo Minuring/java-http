@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 import org.apache.coyote.message.HttpRequest;
+import org.apache.coyote.message.HttpResponse;
 
 public class HttpRequestRouter {
 
@@ -19,7 +20,7 @@ public class HttpRequestRouter {
         SEQUENCED_ROUTER.put(uri -> getResource(uri) != null, new ResourceHandler());
     }
 
-    public String route(final HttpRequest request) throws IOException {
+    public HttpResponse route(final HttpRequest request) throws IOException {
         final var uri = request.requestLine().uri();
 
         for (final var entry : SEQUENCED_ROUTER.entrySet()) {
@@ -30,7 +31,7 @@ public class HttpRequestRouter {
             }
         }
 
-        return "HTTP/1.1 404 Not Found\r\nContent-Length: 0";
+        return HttpResponse.notFound().build();
     }
 
     private static URL getResource(final String uri) {

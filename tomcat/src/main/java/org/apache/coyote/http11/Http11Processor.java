@@ -8,6 +8,7 @@ import java.net.Socket;
 import org.apache.coyote.Processor;
 import org.apache.coyote.io.HttpInputStreamReader;
 import org.apache.coyote.io.HttpMessageParser;
+import org.apache.coyote.io.HttpResponseEncoder;
 import org.apache.coyote.message.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ public class Http11Processor implements Runnable, Processor {
     private static final Logger log = LoggerFactory.getLogger(Http11Processor.class);
 
     private final Socket connection;
+    private final HttpResponseEncoder httpResponseEncoder = new HttpResponseEncoder();
 
     public Http11Processor(final Socket connection) {
         this.connection = connection;
@@ -34,10 +36,11 @@ public class Http11Processor implements Runnable, Processor {
              final var outputStream = connection.getOutputStream()) {
 
             final var httpRequest = readMessage(inputStream);
-            final var handler = new HttpRequestRouter();
-            final var response = handler.route(httpRequest);
+            final var router = new HttpRequestRouter();
+            final var httpResponse = router.route(httpRequest);
+            final var httpResponseMessage = httpResponseEncoder.encode(httpResponse);
 
-            outputStream.write(response.getBytes());
+            outputStream.write(httpResponseMessage.getBytes());
             outputStream.flush();
         } catch (IOException | UncheckedServletException e) {
             log.error(e.getMessage(), e);

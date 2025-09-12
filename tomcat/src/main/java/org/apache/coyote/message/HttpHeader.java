@@ -1,5 +1,6 @@
 package org.apache.coyote.message;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -27,6 +28,10 @@ public class HttpHeader {
 
     public String get(final String name) {
         return headers.get(name.toLowerCase());
+    }
+
+    public Map<String, String> getHeaders() {
+        return Collections.unmodifiableMap(headers);
     }
 
     public HttpCookie getCookie() {

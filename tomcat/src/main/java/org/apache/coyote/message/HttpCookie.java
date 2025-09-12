@@ -1,5 +1,6 @@
 package org.apache.coyote.message;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,5 +23,9 @@ public class HttpCookie {
 
     public String get(final String name) {
         return cookies.get(name.toLowerCase());
+    }
+
+    public Map<String, String> getCookies() {
+        return Collections.unmodifiableMap(cookies);
     }
 }

@@ -10,21 +10,21 @@ import java.util.Arrays;
 import java.util.Map;
 import org.apache.coyote.io.StaticResource;
 import org.apache.coyote.message.HttpRequest;
+import org.apache.coyote.message.HttpResponse;
+import org.apache.coyote.message.HttpStatusCode;
 
 public class RegisterHandler implements HttpRequestHandler {
 
-    public String handle(final HttpRequest request) throws IOException {
+    public HttpResponse handle(final HttpRequest request) throws IOException {
         final var httpMethod = request.requestLine().httpMethod();
 
         if (httpMethod.isGet()) {
             final var body = new StaticResource("register.html").readAsString();
-            return String.join("\r\n",
-                    "HTTP/1.1 200 OK",
-                    "Content-Type: text/html;charset=utf-8",
-                    "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length,
-                    "",
-                    body
-            );
+            return HttpResponse.ok()
+                    .contentType("text/html;charset=utf-8")
+                    .contentLength(body.getBytes(StandardCharsets.UTF_8).length)
+                    .body(body)
+                    .build();
         }
 
         if (httpMethod.isPost()) {
@@ -33,7 +33,9 @@ public class RegisterHandler implements HttpRequestHandler {
                     .collect(toMap(kv -> kv[0], kv -> kv[1]));
 
             register(formData);
-            return "HTTP/1.1 302 Found\r\nLocation: /index.html";
+            return HttpResponse.builder(HttpStatusCode.FOUND)
+                    .location("/index.html")
+                    .build();
         }
 
         throw new IllegalArgumentException("지원하지 않는 HTTP 메서드입니다.");

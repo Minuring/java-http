@@ -1,6 +1,8 @@
 package com.techcourse.handler;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.techcourse.model.User;
 import java.io.IOException;
@@ -13,6 +15,7 @@ import org.apache.coyote.message.HttpCookie;
 import org.apache.coyote.message.HttpHeader;
 import org.apache.coyote.message.HttpMethod;
 import org.apache.coyote.message.HttpRequest;
+import org.apache.coyote.message.HttpStatusCode;
 import org.apache.coyote.message.RequestLine;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,12 +38,11 @@ class LoginHandlerTest {
         // then
         final var resource = getClass().getClassLoader().getResource("static/login.html");
         final var content = Files.readString(Path.of(resource.getPath()));
-        assertThat(result).containsSubsequence(
-                "HTTP/1.1 200 OK",
-                "Content-Type: text/html",
-                "Content-Length: " + content.getBytes().length,
-                "\r\n\r\n",
-                content
+        assertAll(
+                () -> assertThat(result.getStatusLine().statusCode()).isEqualTo(HttpStatusCode.OK),
+                () -> assertThat(result.getHeader().get("content-type")).startsWith("text/html"),
+                () -> assertThat(result.getHeader().get("content-length")).isEqualTo(content.getBytes(UTF_8).length + ""),
+                () -> assertThat(result.getBody()).isEqualTo(content)
         );
     }
 
@@ -62,7 +64,10 @@ class LoginHandlerTest {
         final var result = handler.handle(request);
 
         // then
-        assertThat(result).contains("HTTP/1.1 302 Found\r\nLocation: /index.html");
+        assertAll(
+                () -> assertThat(result.getStatusLine().statusCode()).isEqualTo(HttpStatusCode.FOUND),
+                () -> assertThat(result.getHeader().get("location")).isEqualTo("/index.html")
+        );
     }
 
     @Test
@@ -83,9 +88,9 @@ class LoginHandlerTest {
         final var result = handler.handle(request);
 
         // then
-        assertThat(result).containsSubsequence(
-                "HTTP/1.1 302 Found",
-                "Location: /index.html"
+        assertAll(
+                () -> assertThat(result.getStatusLine().statusCode()).isEqualTo(HttpStatusCode.FOUND),
+                () -> assertThat(result.getHeader().get("location")).isEqualTo("/index.html")
         );
     }
 
@@ -101,13 +106,13 @@ class LoginHandlerTest {
                 "Content-Type", "application/x-www-form-urlencoded",
                 "Content-Length", formRequestBody.getBytes().length + ""
         ));
-        final var request = new HttpRequest(post_login_http11, header,  formRequestBody);
+        final var request = new HttpRequest(post_login_http11, header, formRequestBody);
 
         // when
         final var result = handler.handle(request);
 
         // then
-        assertThat(result).contains("Set-Cookie: JSESSIONID=");
+        assertThat(result.getHeader().getCookie().getSessionId()).isNotEmpty();
     }
 
     @Test
@@ -128,9 +133,9 @@ class LoginHandlerTest {
         final var result = handler.handle(request);
 
         // then
-        assertThat(result).containsSubsequence(
-                "HTTP/1.1 302 Found",
-                "Location: /401.html"
+        assertAll(
+                () -> assertThat(result.getStatusLine().statusCode()).isEqualTo(HttpStatusCode.FOUND),
+                () -> assertThat(result.getHeader().get("location")).isEqualTo("/401.html")
         );
     }
 }

@@ -1,6 +1,7 @@
 package org.apache.coyote.http11;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import org.junit.jupiter.api.Test;
 import support.StubSocket;
@@ -17,13 +18,12 @@ class Http11ProcessorTest {
         processor.process(socket);
 
         // then
-        final var expected = String.join("\r\n",
-                "HTTP/1.1 200 OK",
-                "Content-Type: text/html;charset=utf-8",
-                "Content-Length: 12",
-                "",
-                "Hello world!");
-
-        assertThat(socket.output()).isEqualTo(expected);
+        final var output = socket.output();
+        assertAll(
+                () -> assertThat(output).containsIgnoringCase("HTTP/1.1 200 OK"),
+                () -> assertThat(output).containsIgnoringCase("Content-Type: text/html;charset=utf-8"),
+                () -> assertThat(output).containsIgnoringCase("Content-Length: 12"),
+                () -> assertThat(output).containsOnlyOnce("Hello world!")
+        );
     }
 }

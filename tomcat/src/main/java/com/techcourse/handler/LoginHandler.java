@@ -12,6 +12,8 @@ import org.apache.catalina.session.Session;
 import org.apache.catalina.session.SessionManager;
 import org.apache.coyote.io.StaticResource;
 import org.apache.coyote.message.HttpRequest;
+import org.apache.coyote.message.HttpResponse;
+import org.apache.coyote.message.HttpStatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,11 +21,13 @@ public class LoginHandler implements HttpRequestHandler {
 
     private static final Logger log = LoggerFactory.getLogger(LoginHandler.class);
 
-    public String handle(final HttpRequest request) throws IOException {
+    public HttpResponse handle(final HttpRequest request) throws IOException {
         final var session = findOrCreateSession(request);
 
         if (session.getAttribute("user") != null) {
-            return "HTTP/1.1 302 Found\r\nLocation: /index.html";
+            return HttpResponse.builder(HttpStatusCode.FOUND)
+                    .location("/index.html")
+                    .build();
         }
 
         // 계정, 비밀번호를 입력한 경우 로그인 시도
@@ -38,23 +42,25 @@ public class LoginHandler implements HttpRequestHandler {
             if (loggedInUser != null) {
                 session.setAttribute("user", loggedInUser);
                 SessionManager.INSTANCE.add(session);
-                return "HTTP/1.1 302 Found\r\nLocation: /index.html \r\n"
-                        + "Set-Cookie: JSESSIONID=" + session.getId();
+                return HttpResponse.builder(HttpStatusCode.FOUND)
+                        .location("/index.html")
+                        .addCookie("jsessionid", session.getId())
+                        .build();
             }
 
             // 로그인 실패한 경우 302 -> 401.html 리다이렉트
-            return "HTTP/1.1 302 Found\r\nLocation: /401.html";
+            return HttpResponse.builder(HttpStatusCode.FOUND)
+                    .location("/401.html")
+                    .build();
         }
 
         // 계정, 비밀번호를 입력하지 않은 경우 로그인 화면
         final var body = new StaticResource("login.html").readAsString();
-        return String.join("\r\n",
-                "HTTP/1.1 200 OK",
-                "Content-Type: text/html;charset=utf-8",
-                "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length,
-                "",
-                body
-        );
+        return HttpResponse.ok()
+                .contentType("text/html;charset=utf-8")
+                .contentLength(body.getBytes(StandardCharsets.UTF_8).length)
+                .body(body)
+                .build();
     }
 
     private HttpSession findOrCreateSession(final HttpRequest request) {

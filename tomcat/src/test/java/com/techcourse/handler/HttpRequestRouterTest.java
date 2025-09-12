@@ -1,12 +1,14 @@
 package com.techcourse.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.io.IOException;
 import java.util.Map;
 import org.apache.coyote.message.HttpHeader;
 import org.apache.coyote.message.HttpMethod;
 import org.apache.coyote.message.HttpRequest;
+import org.apache.coyote.message.HttpStatusCode;
 import org.apache.coyote.message.RequestLine;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -29,9 +31,9 @@ class HttpRequestRouterTest {
         final var result = handler.route(request);
 
         // then
-        assertThat(result).containsSubsequence(
-                "HTTP/1.1 404 Not Found",
-                "Content-Length: 0"
+        assertAll(
+                () -> assertThat(result.getStatusLine().statusCode()).isEqualTo(HttpStatusCode.NOT_FOUND),
+                () -> assertThat(result.getBody()).isEmpty()
         );
     }
 }

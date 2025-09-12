@@ -1,6 +1,8 @@
 package com.techcourse.handler;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,6 +11,7 @@ import java.util.Map;
 import org.apache.coyote.message.HttpHeader;
 import org.apache.coyote.message.HttpMethod;
 import org.apache.coyote.message.HttpRequest;
+import org.apache.coyote.message.HttpStatusCode;
 import org.apache.coyote.message.RequestLine;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,12 +34,12 @@ class RegisterHandlerTest {
         // then
         final var resource = getClass().getClassLoader().getResource("static/register.html");
         final var content = Files.readString(Path.of(resource.getPath()));
-        assertThat(result).containsSubsequence(
-                "HTTP/1.1 200 OK",
-                "Content-Type: text/html",
-                "Content-Length: " + content.getBytes().length,
-                "\r\n\r\n",
-                content
+        assertAll(
+                () -> assertThat(result.getStatusLine().statusCode()).isEqualTo(HttpStatusCode.OK),
+                () -> assertThat(result.getHeader().get("content-type")).startsWith("text/html"),
+                () -> assertThat(result.getHeader().get("content-length")).isEqualTo(
+                        content.getBytes(UTF_8).length + ""),
+                () -> assertThat(result.getBody()).isEqualTo(content)
         );
     }
 
@@ -59,9 +62,9 @@ class RegisterHandlerTest {
 
         // then
 
-        assertThat(result).containsSubsequence(
-                "HTTP/1.1 302 Found",
-                "Location: /index.html"
+        assertAll(
+                () -> assertThat(result.getStatusLine().statusCode()).isEqualTo(HttpStatusCode.FOUND),
+                () -> assertThat(result.getHeader().get("location")).isEqualTo("/index.html")
         );
     }
 }
