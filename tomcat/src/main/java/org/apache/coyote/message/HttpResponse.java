@@ -44,6 +44,10 @@ public class HttpResponse {
         return builder.contentLength(0);
     }
 
+    public static Builder internalServerError() {
+        return builder(HttpStatusCode.INTERNAL_SERVER_ERROR);
+    }
+
     public static class Builder {
 
         private final StatusLine statusLine;

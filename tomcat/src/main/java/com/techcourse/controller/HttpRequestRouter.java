@@ -1,5 +1,6 @@
 package com.techcourse.controller;
 
+import com.techcourse.ExceptionHandler;
 import java.net.URL;
 import org.apache.coyote.controller.RequestMapping;
 import org.apache.coyote.message.HttpRequest;
@@ -8,6 +9,7 @@ import org.apache.coyote.message.HttpResponse;
 public class HttpRequestRouter {
 
     private final RequestMapping requestMapping = new RequestMapping(new NotFoundController());
+    private final ExceptionHandler exceptionHandler = new ExceptionHandler();
 
     public HttpRequestRouter() {
         requestMapping.add(req -> req.requestLine().uri().isEmpty() || req.requestLine().uri().equals("/"), new HomeController());
@@ -21,7 +23,7 @@ public class HttpRequestRouter {
         try {
             return controller.service(request);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return exceptionHandler.handle(request, e);
         }
     }
 
