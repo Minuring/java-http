@@ -1,10 +1,8 @@
 package org.apache.coyote.message;
 
-import jakarta.servlet.http.HttpSession;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import org.apache.catalina.session.SessionManager;
 
 public class HttpCookie {
 
@@ -13,17 +11,21 @@ public class HttpCookie {
     private final Map<String, String> cookies = new HashMap<>();
 
     public HttpCookie(final Map<String, String> cookies) {
-        cookies.forEach((k, v) -> this.cookies.put(k.toLowerCase(), v.toLowerCase()));
+        cookies.forEach((k, v) -> this.cookies.put(k.toLowerCase(), v));
     }
 
     public HttpCookie() {
     }
 
-    public HttpSession getSession() {
-        return SessionManager.INSTANCE.findSession(get(JSESSIONID));
+    public String getSessionId() {
+        return get(JSESSIONID);
     }
 
     public String get(final String name) {
         return cookies.get(name.toLowerCase());
+    }
+
+    public Map<String, String> getCookies() {
+        return Collections.unmodifiableMap(cookies);
     }
 }

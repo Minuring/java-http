@@ -10,20 +10,16 @@ import org.junit.jupiter.api.Test;
 class HttpCookieTest {
 
     @Test
-    void getSession() {
+    void getSessionId() {
         // given
-        final var session = new Session();
-        session.setAttribute("test", 1);
-        SessionManager.INSTANCE.add(session);
-
-        final var cookie = new HttpCookie(Map.of("JSESSIONID", session.getId()));
+        final var sessionId = new Session().getId();
+        final var cookie = new HttpCookie(Map.of("JSESSIONID", sessionId));
 
         // when
-        final var actual = cookie.getSession();
+        final var actual = cookie.getSessionId();
 
         // then
-        assertThat(actual).isEqualTo(session);
-        assertThat(actual.getAttribute("test")).isEqualTo(1);
+        assertThat(actual).isEqualTo(sessionId);
     }
 
     @Test

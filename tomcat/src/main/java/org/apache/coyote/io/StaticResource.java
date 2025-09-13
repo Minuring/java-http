@@ -38,9 +38,11 @@ public class StaticResource {
         return resource;
     }
 
-    public String readAsString() throws IOException {
+    public String readAsString() {
         try (InputStream in = resource.openStream()) {
             return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

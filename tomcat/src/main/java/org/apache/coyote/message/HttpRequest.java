@@ -1,6 +1,5 @@
 package org.apache.coyote.message;
 
-import jakarta.servlet.http.HttpSession;
 import java.util.Objects;
 
 public record HttpRequest(
@@ -19,8 +18,8 @@ public record HttpRequest(
         this(requestLine, header, "");
     }
 
-    public HttpSession getSession() {
-        return header.getCookie().getSession();
+    public String getSessionId() {
+        return header.getCookie().getSessionId();
     }
 
     public boolean hasBody() {
