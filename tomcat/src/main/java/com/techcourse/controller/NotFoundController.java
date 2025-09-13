@@ -1,5 +1,8 @@
 package com.techcourse.controller;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.nio.charset.StandardCharsets;
 import org.apache.coyote.controller.AbstractController;
 import org.apache.coyote.io.StaticResource;
 import org.apache.coyote.message.HttpRequest;
@@ -14,7 +17,7 @@ public class NotFoundController extends AbstractController {
 
         return HttpResponse.notFound()
                 .contentType("text/html;charset=utf-8")
-                .contentLength(body.length())
+                .contentLength(body.getBytes(UTF_8).length)
                 .body(body)
                 .build();
     }
