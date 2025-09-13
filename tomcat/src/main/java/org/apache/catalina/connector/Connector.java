@@ -13,6 +13,7 @@ import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import org.apache.coyote.http11.Http11Processor;
 import org.apache.coyote.message.HttpResponse;
+import org.apache.coyote.message.HttpStatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +104,7 @@ public class Connector implements Runnable {
     private void responseServerIsBusy(final Socket connection) {
         try (final var os = connection.getOutputStream()) {
             final var message = "sorry, server is very busy. please request after few seconds.";
-            HttpResponse.internalServerError()
+            HttpResponse.builder(HttpStatusCode.SERVICE_UNAVAILABLE)
                     .contentLength(message.getBytes().length)
                     .body(message)
                     .build()
