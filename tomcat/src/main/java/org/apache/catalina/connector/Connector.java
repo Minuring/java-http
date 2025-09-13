@@ -5,7 +5,7 @@ import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
@@ -24,7 +24,7 @@ public class Connector implements Runnable {
     private static final int DEFAULT_MAX_THREAD_COUNT = 10;
 
     private final ServerSocket serverSocket;
-    private final Executor threadPoolExecutor;
+    private final ExecutorService threadPoolExecutor;
     private boolean stopped;
 
     public Connector() {
@@ -34,7 +34,7 @@ public class Connector implements Runnable {
     public Connector(final int port, final int acceptCount, final int maxThreads) {
         final int checkedPort = checkPort(port);
         final int checkedAcceptCount = checkAcceptCount(acceptCount);
-        final int checkedMaxThreads =checkMaxThreads(maxThreads);
+        final int checkedMaxThreads = checkMaxThreads(maxThreads);
 
         this.serverSocket = createServerSocket(checkedPort, checkedAcceptCount);
         this.stopped = false;
@@ -49,7 +49,7 @@ public class Connector implements Runnable {
         }
     }
 
-    private Executor createThreadPool(final int acceptCount, final int maxThreads) {
+    private ExecutorService createThreadPool(final int acceptCount, final int maxThreads) {
         return new ThreadPoolExecutor(
                 Math.min(DEFAULT_CORE_THREAD_COUNT, maxThreads),
                 maxThreads,
@@ -99,6 +99,7 @@ public class Connector implements Runnable {
 
     public void stop() {
         stopped = true;
+        threadPoolExecutor.shutdown();
         try {
             serverSocket.close();
         } catch (IOException e) {
