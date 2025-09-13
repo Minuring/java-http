@@ -20,28 +20,30 @@ public class Connector implements Runnable {
 
     private static final int DEFAULT_PORT = 8080;
     private static final int DEFAULT_ACCEPT_COUNT = 100;
-    private static final int DEFAULT_CORE_POOL_SIZE = 2;
-    private static final int DEFAULT_MAX_POOL_SIZE = 10;
+    private static final int DEFAULT_CORE_THREAD_COUNT = 2;
+    private static final int DEFAULT_MAX_THREAD_COUNT = 10;
 
     private final ServerSocket serverSocket;
     private final Executor threadPoolExecutor;
     private boolean stopped;
 
     public Connector() {
-        this(DEFAULT_PORT, DEFAULT_ACCEPT_COUNT, DEFAULT_MAX_POOL_SIZE);
+        this(DEFAULT_PORT, DEFAULT_ACCEPT_COUNT, DEFAULT_MAX_THREAD_COUNT);
     }
 
     public Connector(final int port, final int acceptCount, final int maxThreads) {
-        this.serverSocket = createServerSocket(port, acceptCount);
+        final int checkedPort = checkPort(port);
+        final int checkedAcceptCount = checkAcceptCount(acceptCount);
+        final int checkedMaxThreads =checkMaxThreads(maxThreads);
+
+        this.serverSocket = createServerSocket(checkedPort, checkedAcceptCount);
         this.stopped = false;
-        this.threadPoolExecutor = createThreadPool(acceptCount, maxThreads);
+        this.threadPoolExecutor = createThreadPool(checkedAcceptCount, checkedMaxThreads);
     }
 
     private ServerSocket createServerSocket(final int port, final int acceptCount) {
         try {
-            final int checkedPort = checkPort(port);
-            final int checkedAcceptCount = checkAcceptCount(acceptCount);
-            return new ServerSocket(checkedPort, checkedAcceptCount);
+            return new ServerSocket(port, acceptCount);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -49,7 +51,7 @@ public class Connector implements Runnable {
 
     private Executor createThreadPool(final int acceptCount, final int maxThreads) {
         return new ThreadPoolExecutor(
-                Math.min(DEFAULT_CORE_POOL_SIZE, maxThreads),
+                Math.min(DEFAULT_CORE_THREAD_COUNT, maxThreads),
                 maxThreads,
                 60,
                 TimeUnit.SECONDS,
@@ -116,5 +118,9 @@ public class Connector implements Runnable {
 
     private int checkAcceptCount(final int acceptCount) {
         return Math.max(acceptCount, DEFAULT_ACCEPT_COUNT);
+    }
+
+    private int checkMaxThreads(final int maxThreads) {
+        return Math.max(maxThreads, DEFAULT_MAX_THREAD_COUNT);
     }
 }
