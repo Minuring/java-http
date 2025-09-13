@@ -1,6 +1,7 @@
 package org.apache.catalina.connector;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,6 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import org.apache.coyote.http11.Http11Processor;
+import org.apache.coyote.message.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,7 +86,7 @@ public class Connector implements Runnable {
         }
     }
 
-    private void process(final Socket connection) {
+    private void process(final Socket connection) throws IOException {
         if (connection == null) {
             return;
         }
@@ -93,7 +95,22 @@ public class Connector implements Runnable {
             threadPoolExecutor.execute(processor);
 
         } catch (RejectedExecutionException e) {
-            log.warn("Thread pool is full. request rejected: {}", e.getMessage());
+            log.error("Thread pool is full. request rejected: {}", e.getMessage());
+            responseServerIsBusy(connection);
+        }
+    }
+
+    private void responseServerIsBusy(final Socket connection) {
+        try (final var os = connection.getOutputStream()) {
+            final var message = "sorry, server is very busy. please request after few seconds.";
+            HttpResponse.internalServerError()
+                    .contentLength(message.getBytes().length)
+                    .body(message)
+                    .build()
+                    .writeTo(os);
+            os.flush();
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
         }
     }
 
